@@ -9,5 +9,8 @@ export const site = {
   description: 'Learn how systems work, grow, and evolve.',
   lang: 'en',
   // Sections are added here as each phase ships, so the header never links to a missing page.
-  nav: [] as NavItem[],
+  nav: [
+    { label: 'Roadmap', href: '/roadmap' },
+    { label: 'Library', href: '/learn' },
+  ] as NavItem[],
 };

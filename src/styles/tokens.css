@@ -5,7 +5,7 @@
 
 :root {
   /* Brand palette */
-  --charcoal: #2b2b2b;
+  --charcoal: #07151e;
   --ghost-white: #f8f8f8;
   --systemly-green: #6fcf97;
   /* Darker green for text on light surfaces: #6fcf97 is only 1.79:1 on ghost white. */
@@ -15,15 +15,16 @@
   --color-bg: var(--ghost-white);
   --color-surface: #ffffff;
   --color-text: var(--charcoal);
-  --color-text-muted: #5c5c5c;
-  --color-border: #e2e2e2;
+  --color-text-muted: #5c6870;
+  --color-border: #e1e5e8;
   --color-accent: var(--systemly-green);
   --color-accent-ink: var(--systemly-green-ink);
   --color-on-accent: var(--charcoal);
   --color-focus: var(--systemly-green-ink);
-  --color-code-bg: #efefef;
+  --color-code-bg: #eef1f3;
 
   /* Typography */
+  /* Lora is used sparingly, in italic: page titles and editorial statements only. */
   --font-display: 'Lora Variable', Georgia, 'Times New Roman', serif;
   --font-sans: 'Google Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
@@ -69,24 +70,24 @@
 /* Dark theme follows the OS preference. A manual toggle can set data-theme later. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #1e1e1e;
-    --color-surface: var(--charcoal);
-    --color-text: #e8e8e8;
-    --color-text-muted: #a8a8a8;
-    --color-border: #3a3a3a;
+    --color-bg: var(--charcoal);
+    --color-surface: #0d1f2b;
+    --color-text: #e6ecef;
+    --color-text-muted: #9aa9b2;
+    --color-border: #1c3240;
     --color-accent-ink: var(--systemly-green);
     --color-focus: var(--systemly-green);
-    --color-code-bg: #262626;
+    --color-code-bg: #0b1b25;
   }
 }
 
 :root[data-theme='dark'] {
-  --color-bg: #1e1e1e;
-  --color-surface: var(--charcoal);
-  --color-text: #e8e8e8;
-  --color-text-muted: #a8a8a8;
-  --color-border: #3a3a3a;
+  --color-bg: var(--charcoal);
+  --color-surface: #0d1f2b;
+  --color-text: #e6ecef;
+  --color-text-muted: #9aa9b2;
+  --color-border: #1c3240;
   --color-accent-ink: var(--systemly-green);
   --color-focus: var(--systemly-green);
-  --color-code-bg: #262626;
+  --color-code-bg: #0b1b25;
 }

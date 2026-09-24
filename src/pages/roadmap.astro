@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AvailabilityFilter from '../components/AvailabilityFilter.astro';
+import StatusTag from '../components/StatusTag.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { groupByLevel, isAvailable } from '../lib/content/catalog';
+import { chapterHref } from '../lib/content/rules';
+
+const levels = groupByLevel(await getCurriculum());
+const total = levels.reduce((sum, l) => sum + l.chapters.length, 0);
+const available = levels.reduce((sum, l) => sum + l.available, 0);
+---
+
+<BaseLayout title="Roadmap" description="The Systemly curriculum, level by level.">
+  <div class="container roadmap">
+    <header class="page-header">
+      <h1>Roadmap</h1>
+      <p class="page-header__lede">
+        {`${levels.length} levels, from foundations to real-world system design. ${available} of ${total} chapters are available; the rest are in preparation.`}
+      </p>
+      <AvailabilityFilter />
+    </header>
+
+    <nav class="level-jump" aria-label="Levels">
+      <ol>
+        {
+          levels.map((l) => (
+            <li>
+              <a href={`#level-${l.level}`} title={l.name}>
+                <span class="visually-hidden">Level </span>
+                {l.level}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    {
+      levels.map((l) => (
+        <section class="level" id={`level-${l.level}`} aria-labelledby={`level-${l.level}-title`}>
+          <header class="level__header">
+            <h2 id={`level-${l.level}-title`}>
+              <span class="level__number">Level {l.level}</span>
+              {l.name}
+            </h2>
+            <p class="level__progress">
+              {l.available} of {l.chapters.length} available
+            </p>
+            <div class="progress" aria-hidden="true">
+              <span style={`width: ${l.chapters.length ? (l.available / l.chapters.length) * 100 : 0}%`} />
+            </div>
+          </header>
+
+          <ol class="chapter-list">
+            {l.chapters.map((c) => (
+              <li class="chapter-row" data-status={c.status}>
+                <span class="chapter-row__number">{c.chapter}</span>
+                <div class="chapter-row__body">
+                  <a
+                    class:list={['chapter-row__title', { 'is-muted': !isAvailable(c) }]}
+                    href={chapterHref(c.slug)}
+                  >
+                    {c.title}
+                  </a>
+                  <StatusTag status={c.status} />
+                  {c.topics.length > 0 && <p class="chapter-row__topics">{c.topics.join(' · ')}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+          {l.available === 0 && (
+            <p class="level__empty" data-when-filtered>
+              No chapters in this level are available yet.
+            </p>
+          )}
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .roadmap {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .page-header {
+    max-width: var(--measure);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .page-header__lede {
+    margin: var(--space-3) 0 var(--space-2);
+    color: var(--color-text-muted);
+  }
+
+  .level-jump {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: var(--space-2) calc(var(--gutter) * -1) 0;
+    padding: var(--space-2) var(--gutter);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .level-jump ol {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: none;
+  }
+
+  .level-jump a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .level-jump a:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .level {
+    max-width: var(--measure);
+    padding-top: var(--space-8);
+    scroll-margin-top: 4rem;
+  }
+
+  .level__header h2 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .level__number {
+    color: var(--color-accent-ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .level__progress {
+    margin: var(--space-2) 0 var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-border);
+    overflow: hidden;
+  }
+
+  .progress span {
+    display: block;
+    height: 100%;
+    background: var(--color-accent);
+  }
+
+  .chapter-list {
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chapter-row {
+    display: grid;
+    grid-template-columns: 3.25rem 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .chapter-row__number {
+    padding-top: 0.15em;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+
+  .chapter-row__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .chapter-row__title {
+    color: var(--color-text);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .chapter-row__title:hover {
+    color: var(--color-accent-ink);
+    text-decoration: underline;
+  }
+
+  .chapter-row__title.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .chapter-row__topics {
+    flex-basis: 100%;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .level__empty {
+    margin: var(--space-4) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

@@ -1,0 +1,175 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AvailabilityFilter from '../../components/AvailabilityFilter.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import { getCurriculum } from '../../lib/content/chapters';
+import { groupAlphabetically, isAvailable } from '../../lib/content/catalog';
+import { chapterHref } from '../../lib/content/rules';
+
+const chapters = await getCurriculum();
+const groups = groupAlphabetically(chapters);
+---
+
+<BaseLayout title="Library" description="Every Systemly chapter, A–Z.">
+  <div class="container library">
+    <header class="page-header">
+      <h1>Library</h1>
+      <p class="page-header__lede">Every chapter, A–Z. Use the roadmap to learn in order.</p>
+      <AvailabilityFilter />
+    </header>
+
+    <nav class="letter-jump" aria-label="Letters">
+      <ol>
+        {
+          groups.map((g) => (
+            <li data-status={g.chapters.some(isAvailable) ? undefined : 'placeholder'}>
+              <a href={`#letter-${g.letter === '#' ? 'other' : g.letter}`}>{g.letter}</a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="letters">
+      {
+        groups.map((g) => (
+          <section
+            class="letter"
+            id={`letter-${g.letter === '#' ? 'other' : g.letter}`}
+            aria-labelledby={`letter-${g.letter}-title`}
+            data-status={g.chapters.some(isAvailable) ? undefined : 'placeholder'}
+          >
+            <h2 id={`letter-${g.letter}-title`}>{g.letter}</h2>
+            <ul>
+              {g.chapters.map((c) => (
+                <li data-status={c.status}>
+                  <a class:list={{ 'is-muted': !isAvailable(c) }} href={chapterHref(c.slug)}>
+                    {c.title}
+                  </a>
+                  <span class="entry-level">Level {c.level}</span>
+                  <StatusTag status={c.status} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .library {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .page-header {
+    max-width: var(--measure);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .page-header__lede {
+    margin: var(--space-3) 0 var(--space-2);
+    color: var(--color-text-muted);
+  }
+
+  .letter-jump {
+    margin-top: var(--space-4);
+  }
+
+  .letter-jump ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .letter-jump a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .letter-jump a:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .letters {
+    display: grid;
+    gap: var(--space-8) var(--space-12);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 48rem) {
+    .letters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .letters {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .letter {
+    scroll-margin-top: var(--space-4);
+  }
+
+  .letter h2 {
+    margin: 0 0 var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-accent-ink);
+    font-size: var(--text-lg);
+  }
+
+  .letter ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .letter li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+    padding-block: var(--space-1);
+  }
+
+  .letter a {
+    color: var(--color-text);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .letter a:hover {
+    color: var(--color-accent-ink);
+    text-decoration: underline;
+  }
+
+  .letter a.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .entry-level {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+</style>

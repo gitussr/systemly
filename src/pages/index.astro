@@ -1,8 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { firstAvailable } from '../lib/content/catalog';
+import { chapterHref } from '../lib/content/rules';
 
 // Copy on this page is taken verbatim from MASTER-PROMPT.md (§1 identity, §1 core philosophy).
 const cycle = ['Understand', 'Model', 'Decide', 'Build', 'Measure', 'Scale', 'Recover', 'Evolve'];
+
+const start = firstAvailable(await getCurriculum());
 ---
 
 <BaseLayout>
@@ -11,6 +16,16 @@ const cycle = ['Understand', 'Model', 'Decide', 'Build', 'Measure', 'Scale', 'Re
     <h1 id="hero-title" class="hero__title">
       Systemly — Learn how systems work, grow, and evolve.
     </h1>
+    <div class="hero__actions">
+      {
+        start && (
+          <a class="button button--primary" href={chapterHref(start.slug)}>
+            Start with {start.title}
+          </a>
+        )
+      }
+      <a class="button" href="/roadmap">View the roadmap</a>
+    </div>
   </section>
 
   <section class="container model" aria-labelledby="model-title">
@@ -23,7 +38,7 @@ const cycle = ['Understand', 'Model', 'Decide', 'Build', 'Measure', 'Scale', 'Re
   <section class="container principle" aria-labelledby="principle-title">
     <h2 id="principle-title" class="visually-hidden">The core principle</h2>
     <blockquote>
-      <p>
+      <p class="editorial">
         Start simple. Understand the constraints. Find the bottleneck. Solve that bottleneck.
         Repeat.
       </p>
@@ -48,6 +63,13 @@ const cycle = ['Understand', 'Model', 'Decide', 'Build', 'Measure', 'Scale', 'Re
     max-width: 20ch;
     margin: 0;
     font-size: var(--text-3xl);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
   }
 
   .cycle {
@@ -82,7 +104,6 @@ const cycle = ['Understand', 'Model', 'Decide', 'Build', 'Measure', 'Scale', 'Re
 
   .principle p {
     margin: 0;
-    font-family: var(--font-display);
     font-size: var(--text-xl);
     line-height: 1.4;
   }

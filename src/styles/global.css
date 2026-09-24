@@ -32,19 +32,22 @@ main {
 
 h1,
 h2,
-h3 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: var(--leading-tight);
-  text-wrap: balance;
-}
-
+h3,
 h4,
 h5,
 h6 {
   font-family: var(--font-sans);
   font-weight: 600;
   line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+/* Lora italic is reserved for page titles and editorial statements. */
+h1,
+.editorial {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
 }
 
 p {
@@ -78,6 +81,36 @@ pre {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color var(--duration-fast);
+}
+
+.button:hover {
+  border-color: var(--color-text-muted);
+}
+
+.button--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.button--primary:hover {
+  border-color: var(--color-on-accent);
 }
 
 .container {

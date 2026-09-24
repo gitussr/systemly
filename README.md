@@ -20,7 +20,7 @@ Requires Node 22.12 or newer.
 npm install
 npm run dev       # http://localhost:4321
 npm test          # unit tests (Vitest)
-npm run build     # type-check, test, then build to dist/
+npm run build     # type-check, test, then a full build to dist/
 npm run preview   # serve dist/
 ```
 
@@ -28,7 +28,10 @@ npm run preview   # serve dist/
 
 ```text
 content/          # canonical Markdown chapters (source of truth)
+├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
+docs/
+└── curriculum-map.md   # the approved curriculum map
 src/
 ├── assets/       # images processed at build time (logo)
 ├── components/   # Astro components
@@ -36,9 +39,9 @@ src/
 ├── integrations/ # build-time content report
 ├── layouts/      # page layouts
 ├── lib/
-│   ├── content/  # frontmatter schema, publishing rules, levels
-│   └── markdown/ # Markdown pipeline and plugins (callouts, tables, task lists)
-├── pages/        # routes; chapters render at /learn/<slug>
+│   ├── content/  # schema, publishing rules, catalog (ordering, grouping), curriculum-map parser
+│   └── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
+├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>
 └── styles/       # tokens, global styles, prose styles
 scripts/          # one-off asset scripts
 tests/            # Vitest unit tests
@@ -48,11 +51,14 @@ tests/            # Vitest unit tests
 
 ## Writing content
 
-Chapters are Markdown files anywhere under `content/`. The folder is for organisation only; the URL comes from `slug`, so moving a file never breaks a link.
+Chapters are Markdown files under `content/`, one folder per roadmap level. The folder is for organisation only; the URL comes from `slug`, so moving a file never breaks a link.
+
+Every chapter in `docs/curriculum-map.md` already has a placeholder file. To write a chapter, fill in its file and change `status` to `approved`. When the map gains new chapters, run `node scripts/generate-chapters.ts` (add `--dry-run` to preview); it only creates missing files and never touches existing ones.
 
 ```yaml
 ---
 title: Load Balancer
+chapter: "02.06"             # curriculum number; must start with the level
 slug: load-balancer          # required, kebab-case, unique → /learn/load-balancer
 level: 2                     # required, 0–12 (roadmap level)
 order: 4                     # position within the level
@@ -62,6 +68,7 @@ summary: One sentence.
 tags: [scaling, networking]
 aliases: [LB]
 related: [reverse-proxy, health-checks]
+topics: [L4 vs L7, Algorithms]   # outline shown on the roadmap and placeholder page
 ---
 ```
 
@@ -72,6 +79,14 @@ related: [reverse-proxy, health-checks]
 | `placeholder` | Published as "In preparation"; build prints `CONTENT REQUIRED` | Same |
 
 The build fails on duplicate slugs or invalid frontmatter.
+
+### Headings
+
+Write chapters the way that reads best in the file; the renderer fits the outline under the page title:
+
+- A leading `# Title` that repeats the frontmatter title is not rendered twice.
+- If sections use `#`, every heading moves down one level.
+- Skipped levels (e.g. `#` followed by `###`) are closed, so the page outline stays valid for screen readers.
 
 ### Callouts
 

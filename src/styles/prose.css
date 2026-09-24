@@ -18,6 +18,10 @@
 }
 
 /* Headings */
+.prose :where(h2, h3, h4, h5, h6) {
+  scroll-margin-top: var(--space-6);
+}
+
 .prose h2 {
   margin-top: var(--space-12);
   margin-bottom: 0;
@@ -102,18 +106,21 @@
   min-width: 100%;
 }
 
+/* Shiki sets inline colours per theme; the block background always follows Systemly's tokens. */
+.prose .astro-code {
+  background-color: var(--color-code-bg) !important;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .prose .astro-code,
   :root:not([data-theme='light']) .prose .astro-code span {
     color: var(--shiki-dark) !important;
-    background-color: var(--shiki-dark-bg) !important;
   }
 }
 
 :root[data-theme='dark'] .prose .astro-code,
 :root[data-theme='dark'] .prose .astro-code span {
   color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
 }
 
 /* Tables */

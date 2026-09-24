@@ -1,19 +1,21 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import ChapterLayout from '../../layouts/ChapterLayout.astro';
-import { isVisible } from '../../lib/content/rules';
+import { getCurriculum, getPublishedChapters } from '../../lib/content/chapters';
+import { neighbours } from '../../lib/content/catalog';
 
 export async function getStaticPaths() {
-  const chapters = await getCollection('chapters', ({ data }) =>
-    isVisible(data.status, import.meta.env.DEV),
-  );
-  return chapters.map((chapter) => ({ params: { slug: chapter.id }, props: { chapter } }));
+  const [chapters, curriculum] = await Promise.all([getPublishedChapters(), getCurriculum()]);
+  return chapters.map((chapter) => ({
+    params: { slug: chapter.id },
+    props: { chapter, ...neighbours(curriculum, chapter.data.slug) },
+  }));
 }
 
-const { chapter } = Astro.props;
-const { Content } = await render(chapter);
+const { chapter, previous, next } = Astro.props;
+const { Content, headings } = await render(chapter);
 ---
 
-<ChapterLayout data={chapter.data}>
+<ChapterLayout data={chapter.data} headings={headings} previous={previous} next={next}>
   {chapter.data.status !== 'placeholder' && <Content />}
 </ChapterLayout>

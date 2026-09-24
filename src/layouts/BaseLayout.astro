@@ -1,5 +1,6 @@
 ---
-import '@fontsource-variable/lora';
+// Lora is only used in italic; the upright files are never loaded.
+import '@fontsource-variable/lora/wght-italic.css';
 import '@fontsource-variable/google-sans';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -23,7 +24,7 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f8f8f8" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#07151e" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="generator" content={Astro.generator} />
   </head>

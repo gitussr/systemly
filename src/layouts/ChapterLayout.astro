@@ -1,52 +1,187 @@
 ---
+import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
+import StatusTag from '../components/StatusTag.astro';
 import { levelLabel } from '../lib/content/levels';
+import { isAvailable, type ChapterMeta } from '../lib/content/catalog';
+import { chapterHref } from '../lib/content/rules';
 import type { ChapterData } from '../lib/content/schema';
 import '../styles/prose.css';
 
 interface Props {
   data: ChapterData;
+  headings?: MarkdownHeading[];
+  previous?: ChapterMeta;
+  next?: ChapterMeta;
 }
 
-const { data } = Astro.props;
+const { data, headings = [], previous, next } = Astro.props;
 const isPlaceholder = data.status === 'placeholder';
+const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
 ---
 
 <BaseLayout title={data.title} description={data.summary}>
-  <article class="container chapter">
-    <header class="chapter__header">
-      <p class="chapter__meta">
-        <span>{levelLabel(data.level)}</span>
-        {data.difficulty && <span class="chapter__difficulty">{data.difficulty}</span>}
-        {data.status === 'draft' && <span class="chapter__badge">Draft — not published</span>}
-      </p>
-      <h1 class="chapter__title">{data.title}</h1>
-      {data.summary && <p class="chapter__summary">{data.summary}</p>}
-    </header>
+  <div class="container chapter-page">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/roadmap">Roadmap</a></li>
+        <li><a href={`/roadmap#level-${data.level}`}>{levelLabel(data.level)}</a></li>
+      </ol>
+    </nav>
 
-    {
-      isPlaceholder ? (
-        <div class="chapter__placeholder" role="status">
-          <p class="chapter__placeholder-title">In preparation</p>
-          <p>This chapter is being written and reviewed. It will appear here once approved.</p>
-        </div>
-      ) : (
-        <div class="prose">
-          <slot />
-        </div>
-      )
-    }
-  </article>
+    <div class:list={['chapter-grid', { 'has-toc': toc.length > 1 }]}>
+      <article class="chapter">
+        <header class="chapter__header">
+          <p class="chapter__meta">
+            {data.chapter && <span class="chapter__number">{data.chapter}</span>}
+            {data.difficulty && <span class="chapter__difficulty">{data.difficulty}</span>}
+            {data.status === 'draft' && <span class="chapter__badge">Draft — not published</span>}
+          </p>
+          <h1 class="chapter__title">{data.title}</h1>
+          {data.summary && <p class="chapter__summary editorial">{data.summary}</p>}
+        </header>
+
+        {
+          toc.length > 1 && (
+            <details class="toc toc--inline">
+              <summary>On this page</summary>
+              <ol>
+                {toc.map((h) => (
+                  <li>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )
+        }
+
+        {
+          isPlaceholder ? (
+            <div class="chapter__placeholder" role="status">
+              <p class="chapter__placeholder-title">In preparation</p>
+              <p>This chapter is being written and reviewed. It will appear here once approved.</p>
+              {data.topics.length > 0 && (
+                <>
+                  <p class="chapter__placeholder-title">Planned topics</p>
+                  <ul>
+                    {data.topics.map((topic) => (
+                      <li>{topic}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          ) : (
+            <div class="prose">
+              <slot />
+            </div>
+          )
+        }
+
+        {
+          (previous || next) && (
+            <nav class="pager" aria-label="Chapters">
+              {previous && (
+                <a class="pager__link pager__link--previous" href={chapterHref(previous.slug)} rel="prev">
+                  <span class="pager__label">Previous</span>
+                  <span class:list={['pager__title', { 'is-muted': !isAvailable(previous) }]}>
+                    {previous.chapter && <span class="pager__number">{previous.chapter}</span>}
+                    {previous.title}
+                  </span>
+                  <StatusTag status={previous.status} />
+                </a>
+              )}
+              {next && (
+                <a class="pager__link pager__link--next" href={chapterHref(next.slug)} rel="next">
+                  <span class="pager__label">Next</span>
+                  <span class:list={['pager__title', { 'is-muted': !isAvailable(next) }]}>
+                    {next.chapter && <span class="pager__number">{next.chapter}</span>}
+                    {next.title}
+                  </span>
+                  <StatusTag status={next.status} />
+                </a>
+              )}
+            </nav>
+          )
+        }
+      </article>
+
+      {
+        toc.length > 1 && (
+          <aside class="toc toc--side">
+            <nav aria-label="On this page">
+              <p class="toc__title">On this page</p>
+              <ol>
+                {toc.map((h) => (
+                  <li>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          </aside>
+        )
+      }
+    </div>
+  </div>
 </BaseLayout>
 
 <style>
-  .chapter {
-    padding-block: var(--space-8) var(--space-12);
+  .chapter-page {
+    padding-block: var(--space-6) var(--space-12);
   }
 
+  /* Breadcrumb */
+  .breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .breadcrumb li + li::before {
+    content: '/';
+    margin-right: var(--space-2);
+    color: var(--color-text-muted);
+  }
+
+  .breadcrumb a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  /* Layout */
+  .chapter {
+    min-width: 0;
+  }
+
+  @media (min-width: 68rem) {
+    .chapter-grid.has-toc {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      gap: var(--space-16);
+    }
+  }
+
+  /* Header */
   .chapter__header,
   .chapter__placeholder {
     max-width: var(--measure);
+  }
+
+  .chapter__header {
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .chapter__meta {
@@ -56,6 +191,15 @@ const isPlaceholder = data.status === 'placeholder';
     margin: 0 0 var(--space-3);
     color: var(--color-text-muted);
     font-size: var(--text-sm);
+  }
+
+  .chapter__meta:empty {
+    display: none;
+  }
+
+  .chapter__number {
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
   }
 
   .chapter__difficulty {
@@ -75,18 +219,12 @@ const isPlaceholder = data.status === 'placeholder';
 
   .chapter__summary {
     margin: var(--space-4) 0 0;
-    font-family: var(--font-display);
     font-size: var(--text-xl);
     line-height: 1.45;
     color: var(--color-text-muted);
   }
 
-  .chapter__header {
-    margin-bottom: var(--space-8);
-    padding-bottom: var(--space-6);
-    border-bottom: 1px solid var(--color-border);
-  }
-
+  /* Placeholder */
   .chapter__placeholder {
     padding: var(--space-6);
     border: 1px dashed var(--color-border);
@@ -101,5 +239,142 @@ const isPlaceholder = data.status === 'placeholder';
   .chapter__placeholder-title {
     margin-bottom: var(--space-2) !important;
     font-weight: 600;
+  }
+
+  .chapter__placeholder p + .chapter__placeholder-title {
+    margin-top: var(--space-6) !important;
+  }
+
+  .chapter__placeholder ul {
+    margin: 0;
+    padding-left: 1.2em;
+    color: var(--color-text-muted);
+  }
+
+  /* Table of contents */
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc a {
+    display: block;
+    padding-block: var(--space-1);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--color-text);
+  }
+
+  .toc--inline {
+    max-width: var(--measure);
+    margin-bottom: var(--space-8);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .toc--inline summary {
+    line-height: 2rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toc--inline ol {
+    margin-top: var(--space-2);
+  }
+
+  .toc--side {
+    display: none;
+  }
+
+  @media (min-width: 68rem) {
+    .toc--inline {
+      display: none;
+    }
+
+    .toc--side {
+      display: block;
+    }
+
+    .toc--side nav {
+      position: sticky;
+      top: var(--space-8);
+      max-height: calc(100vh - var(--space-16));
+      overflow-y: auto;
+      padding-left: var(--space-4);
+      border-left: 1px solid var(--color-border);
+    }
+  }
+
+  .toc__title {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  /* Previous / next */
+  .pager {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--measure);
+    margin-top: var(--space-16);
+  }
+
+  @media (min-width: 40rem) {
+    .pager {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pager__link--next {
+      grid-column: 2;
+      text-align: right;
+      align-items: flex-end;
+    }
+  }
+
+  .pager__link {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .pager__link:hover {
+    border-color: var(--color-accent);
+  }
+
+  .pager__label {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .pager__title {
+    font-weight: 500;
+  }
+
+  .pager__title.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .pager__number {
+    margin-right: var(--space-2);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
   }
 </style>

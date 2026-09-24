@@ -3,7 +3,7 @@
 // Run: node scripts/make-dark-logo.mjs
 import sharp from 'sharp';
 
-const LIGHT = [0xe8, 0xe8, 0xe8];
+const LIGHT = [0xe6, 0xec, 0xef];
 const { data, info } = await sharp('src/assets/logo.png').ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 
 for (let i = 0; i < data.length; i += 4) {

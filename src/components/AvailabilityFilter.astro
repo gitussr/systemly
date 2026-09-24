@@ -1,0 +1,38 @@
+---
+// A plain checkbox; the hiding is done in CSS with :has(), so it works without JavaScript.
+---
+
+<label class="availability-filter">
+  <input type="checkbox" class="availability-filter__input" />
+  <span>Show available chapters only</span>
+</label>
+
+<style is:global>
+  .availability-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .availability-filter__input {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    accent-color: var(--color-accent-ink);
+  }
+
+  main:has(.availability-filter__input:checked) [data-status='placeholder'] {
+    display: none;
+  }
+
+  [data-when-filtered] {
+    display: none;
+  }
+
+  main:has(.availability-filter__input:checked) [data-when-filtered] {
+    display: block;
+  }
+</style>
