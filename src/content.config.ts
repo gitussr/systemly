@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { chapterSchema } from './lib/content/schema';
 import { DEV_ONLY_GLOB } from './lib/content/rules';
+import { ruleSchema } from './lib/advisor/schema';
 
 const chapters = defineCollection({
   loader: glob({
@@ -13,4 +14,10 @@ const chapters = defineCollection({
   schema: chapterSchema,
 });
 
-export const collections = { chapters };
+/** Architecture Advisor rules: one YAML file per rule; the file name is the rule id. */
+const advisorRules = defineCollection({
+  loader: glob({ base: './content/advisor/rules', pattern: '*.yaml' }),
+  schema: ruleSchema,
+});
+
+export const collections = { chapters, advisorRules };

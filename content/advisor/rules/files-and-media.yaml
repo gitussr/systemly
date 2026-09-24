@@ -1,0 +1,16 @@
+title: Keep files in object storage, not in the database or on app servers
+status: draft
+priority: 10
+when:
+  dataTypes: [files]
+architecture:
+  add: [object-storage]
+sections:
+  why:
+    - text: "Store files in object storage and keep only their metadata in the database. Application disks are not shared between instances, and databases are a costly place to keep large files."
+      chapters: [object-storage]
+  lockIn:
+    - "The S3 API is widely implemented by other providers. Keep uploads and downloads behind one storage module to stay portable."
+  at10x:
+    - text: "Serve files through a CDN, so downloads do not pass through the application."
+      chapters: [cdn]

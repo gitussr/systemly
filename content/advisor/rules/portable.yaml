@@ -1,0 +1,10 @@
+title: Stay portable across providers
+status: draft
+when:
+  cloud: [portable, self-hosted]
+sections:
+  lockIn:
+    - "Choose components with open interfaces (PostgreSQL, Redis-compatible caches, S3-compatible storage), so each can run on any provider."
+  migration:
+    - text: "Containers and infrastructure as code turn a move between hosts into a redeploy instead of a rebuild."
+      chapters: [containers, infrastructure-as-code]

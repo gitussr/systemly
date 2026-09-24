@@ -1,0 +1,13 @@
+title: Pre-render pages that are the same for every reader
+status: draft
+priority: 10
+when:
+  appType: [content-site]
+architecture:
+  add: [cdn]
+sections:
+  why:
+    - text: "Most pages do not depend on who is reading. Render them ahead of time and serve them from a CDN."
+      chapters: [cdn, http-caching]
+  alternatives:
+    - "A static site generator, with no application server for pages that do not depend on the user."

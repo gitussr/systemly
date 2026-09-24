@@ -1,0 +1,17 @@
+title: Serve content close to distant users
+status: draft
+priority: 10
+when:
+  geography: [multi-region, global]
+architecture:
+  add: [cdn]
+sections:
+  why:
+    - text: "A CDN serves static files and cacheable pages from locations near users. It is usually the cheapest latency improvement for distant users."
+      chapters: [cdn, cdn-edge]
+  notYet:
+    - text: "Databases accepting writes in several regions. Serving reads near users is much simpler than keeping writable copies consistent."
+      chapters: [multi-region, cap-theorem]
+  at100x:
+    - text: "Read replicas or a second region for reads, with a tested failover plan."
+      chapters: [multi-region, disaster-recovery]

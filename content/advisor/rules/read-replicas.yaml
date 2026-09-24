@@ -1,0 +1,16 @@
+title: Spread reads across replicas when slightly stale reads are acceptable
+status: draft
+priority: 10
+when:
+  readWrite: [read-heavy]
+  traffic: [1k-10k, over-10k]
+  consistency: [mostly-strong, eventual]
+architecture:
+  add: [read-replicas]
+sections:
+  why:
+    - text: "Read replicas serve read queries from copies of the database, so reads stop competing with writes on the primary."
+      chapters: [read-replicas, primary-replica-architecture]
+  bottlenecks:
+    - text: "Replication lag: a read just after a write may not see it. Send reads that must be current to the primary."
+      chapters: [database-replication, eventual-consistency]

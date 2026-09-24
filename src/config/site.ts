@@ -12,5 +12,6 @@ export const site = {
   nav: [
     { label: 'Roadmap', href: '/roadmap' },
     { label: 'Library', href: '/learn' },
+    { label: 'Advisor', href: '/advisor' },
   ] as NavItem[],
 };

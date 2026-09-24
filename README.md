@@ -29,6 +29,7 @@ npm run preview   # serve dist/
 
 ```text
 content/          # canonical Markdown chapters (source of truth)
+├── advisor/rules/  # Architecture Advisor rules, one YAML file each
 ├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
 docs/
@@ -39,6 +40,7 @@ src/
 ├── integrations/ # build-time content report and service-worker generator
 ├── layouts/      # page layouts
 ├── lib/
+│   ├── advisor/  # Advisor inputs, components, rule schema and rules engine
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 │   ├── pwa/      # finds the files each page needs offline
@@ -64,6 +66,33 @@ Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / 
 - The service worker is registered only in production builds (`npm run build` + `npm run preview` to test locally).
 
 App icons in `public/icons/` and `public/favicon.svg` are drawn from the Lora SemiBold "S" and the brand green dot, like the wordmark.
+
+## Architecture Advisor
+
+`/advisor` suggests a starting architecture and explains it. It is a rules engine, not a model: every component and every sentence shows which of the reader's answers produced it, and all applied rules are listed.
+
+Each rule is one YAML file in `content/advisor/rules/` (the file name is its id):
+
+```yaml
+title: Cache repeated reads
+status: draft            # draft (default) | approved — only approved rules are published
+priority: 10             # when rules disagree about a component, higher wins
+when:                    # every listed field must match one of its values; omit = always
+  readWrite: [read-heavy]
+  traffic: [100-1k, 1k-10k, over-10k]
+architecture:
+  add: [cache]           # components: see src/lib/advisor/components.ts
+  omit: []               # components this rule says are not needed
+sections:                # why, alternatives, notYet, bottlenecks, scalingPath,
+  why:                   # lockIn, migration, measure, at10x, at100x
+    - text: "Most requests read the same data…"
+      chapters: [caching, cache-aside]
+    - "Plain text items are fine too."
+```
+
+Input fields and their allowed values are defined in `src/lib/advisor/inputs.ts`; the build rejects unknown fields, values, components, sections and chapter links.
+
+**Reviewing drafts:** build with `SHOW_DRAFTS=true` (e.g. a Vercel preview: `vercel deploy --build-env SHOW_DRAFTS=true`). Production builds never show drafts.
 
 ## Writing content
 

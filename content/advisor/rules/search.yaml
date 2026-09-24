@@ -1,0 +1,18 @@
+title: Add a search index only when database search is not enough
+status: draft
+priority: 10
+when:
+  dataTypes: [search]
+  dataVolume: [100gb-1tb, 1-10tb, over-10tb]
+architecture:
+  add: [search-index]
+sections:
+  why:
+    - text: "A dedicated search index handles relevance ranking and fast full-text queries over large volumes."
+      chapters: [search-system]
+  alternatives:
+    - "Full-text search built into PostgreSQL or MySQL, which needs no second system to keep in sync."
+  bottlenecks:
+    - "Keeping the index in sync with the database: plan for delays and for a full re-index."
+  lockIn:
+    - "The index is a copy that can be rebuilt from the database, which keeps it replaceable. Query syntax and relevance tuning are engine-specific."

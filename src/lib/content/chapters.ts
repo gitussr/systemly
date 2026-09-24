@@ -4,13 +4,14 @@
  */
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { sortChapters } from './catalog';
+import { SHOW_DRAFTS } from './env';
 import { isDevOnlyPath, isVisible } from './rules';
 
 export type ChapterEntry = CollectionEntry<'chapters'>;
 
 /** Every chapter that gets a page in this build. */
 export async function getPublishedChapters(): Promise<ChapterEntry[]> {
-  return getCollection('chapters', ({ data }) => isVisible(data.status, import.meta.env.DEV));
+  return getCollection('chapters', ({ data }) => isVisible(data.status, SHOW_DRAFTS));
 }
 
 /** Entries listed in the roadmap, library, search and previous/next links (no dev fixtures). */

@@ -1,0 +1,12 @@
+title: Choose operations a small team can sustain
+status: draft
+priority: 5
+when:
+  teamSize: [solo, small]
+sections:
+  notYet:
+    - text: "A separate service per feature. A modular monolith gives clear internal boundaries without the operational cost of many services."
+      chapters: [modular-monolith, service-boundaries]
+  lockIn:
+    - text: "Prefer a managed database with automated backups: running one yourself costs time a small team rarely has. The trade-off is less control and some provider coupling."
+      chapters: [managed-databases]

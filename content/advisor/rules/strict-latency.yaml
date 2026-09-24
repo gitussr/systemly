@@ -1,0 +1,14 @@
+title: Keep hot data in memory for strict latency targets
+status: draft
+priority: 5
+when:
+  latency: [strict]
+architecture:
+  add: [cache]
+sections:
+  why:
+    - text: "Meeting about 100 ms reliably usually needs frequently read data in memory, close to the application."
+      chapters: [caching, latency-throughput-bandwidth]
+  measure:
+    - text: "p99 latency, not the average: the slowest requests are the ones users notice."
+      chapters: [latency-percentiles]

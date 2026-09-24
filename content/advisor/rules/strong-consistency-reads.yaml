@@ -1,0 +1,11 @@
+title: With strong consistency everywhere, scale the primary before adding replicas
+status: draft
+priority: 5
+when:
+  readWrite: [read-heavy]
+  traffic: [1k-10k, over-10k]
+  consistency: [strong]
+sections:
+  notYet:
+    - text: "Read replicas for all reads. Replication lag would show stale data, which this system cannot accept. Scale the primary, tune queries, and cache only data that tolerates staleness."
+      chapters: [read-replicas, data-consistency]

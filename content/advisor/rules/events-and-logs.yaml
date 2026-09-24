@@ -1,0 +1,14 @@
+title: Buffer events before storing them
+status: draft
+priority: 10
+when:
+  dataTypes: [events]
+architecture:
+  add: [queue]
+sections:
+  why:
+    - text: "Accept writes quickly and process them in background workers. Bursts wait in the queue instead of overloading the database."
+      chapters: [why-queues-exist, message-queue, worker, backpressure]
+  alternatives:
+    - text: "For low volumes, inserting events directly into the database is simpler and easier to query."
+      chapters: [synchronous-vs-asynchronous-work]

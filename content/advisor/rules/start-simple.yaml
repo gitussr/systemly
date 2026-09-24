@@ -1,0 +1,36 @@
+# Applies to every answer: the baseline every other rule builds on.
+title: Start with one application and one database
+status: draft
+when: {}
+architecture:
+  omit: [cache, queue, read-replicas, search-index]
+sections:
+  why:
+    - text: "One application and one relational database is the smallest system that works: one thing to deploy, one place to debug, one source of truth."
+      chapters: [monolith, relational-databases]
+  notYet:
+    - text: "Microservices. They add network calls, partial failure and deployment coordination. Split services when a measured team or scaling boundary requires it."
+      chapters: [microservices, when-microservices-don-t]
+    - text: "Kubernetes or a service mesh. One service does not need an orchestrator."
+      chapters: [containers]
+    - text: "Sharding. Indexes, query tuning and a larger database instance come first."
+      chapters: [sharding, database-indexes]
+  scalingPath:
+    - text: "Measure, then remove one bottleneck at a time: slow queries and missing indexes, a larger instance, more application instances, caching and read replicas, background work, and only then partitioning."
+      chapters: [query-optimization, vertical-scaling, horizontal-scaling]
+  lockIn:
+    - "Keep database access behind one module, so a later change of database, cache or ORM touches one place."
+  migration:
+    - "Low at this stage: one application and one database can move between hosts or clouds with a database dump and a redeploy."
+  measure:
+    - text: "p50, p95 and p99 latency per endpoint."
+      chapters: [p50-p95-p99]
+    - "Error rate."
+    - text: "Database CPU, open connections and slow queries."
+      chapters: [connection-pooling]
+    - "Application CPU and memory."
+  at10x:
+    - text: "Several application instances behind a load balancer. The application must be stateless: sessions and uploads cannot live on one instance."
+      chapters: [stateless-application-design, load-balancer]
+  at100x:
+    - "Caching, read replicas and background workers become likely. Add each one only when a measurement shows the problem it solves."

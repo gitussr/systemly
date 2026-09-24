@@ -1,0 +1,410 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { SHOW_DRAFTS } from '../lib/content/env';
+import { COMPONENTS } from '../lib/advisor/components';
+import { INPUT_FIELDS, INPUT_GROUPS } from '../lib/advisor/inputs';
+import type { Rule, RuleItem } from '../lib/advisor/schema';
+
+const entries = await getCollection('advisorRules');
+const visible = entries.filter((e) => e.data.status === 'approved' || SHOW_DRAFTS);
+const rules: Rule[] = visible.map((e) => ({ ...e.data, id: e.id }));
+const drafts = entries.filter((e) => e.data.status === 'draft').length;
+
+// Every chapter a rule or component links to must exist (placeholders count).
+const curriculum = await getCurriculum();
+const bySlug = new Map(curriculum.map((c) => [c.slug, c]));
+const linked = new Set<string>(COMPONENTS.flatMap((c) => ('chapter' in c ? [c.chapter] : [])));
+for (const rule of entries) {
+  for (const items of Object.values(rule.data.sections) as RuleItem[][]) {
+    for (const item of items) item.chapters.forEach((slug) => linked.add(slug));
+  }
+}
+const missing = [...linked].filter((slug) => !bySlug.has(slug));
+if (missing.length > 0) {
+  throw new Error(`Advisor links to chapters that do not exist: ${missing.join(', ')}`);
+}
+
+const chapters = Object.fromEntries(
+  [...linked].map((slug) => {
+    const c = bySlug.get(slug)!;
+    return [slug, { title: c.title, chapter: c.chapter, status: c.status }];
+  }),
+);
+
+console.info(
+  `[advisor] ${rules.length} rules published` +
+    (SHOW_DRAFTS ? ` (drafts shown for review)` : `; ${drafts} draft rules awaiting approval`),
+);
+---
+
+<BaseLayout
+  title="Architecture Advisor"
+  description="Describe your application and get an explained starting architecture."
+>
+  <div class="container advisor">
+    <header class="advisor__header">
+      <h1>Architecture Advisor</h1>
+      <p class="advisor__lede">
+        Describe your application. The Advisor suggests a starting architecture and explains each
+        part: why it is there, what it costs, and what changes as you grow.
+      </p>
+      <p class="advisor__note editorial">There is no universally correct architecture.</p>
+      {
+        SHOW_DRAFTS && drafts > 0 && (
+          <p class="advisor__review" role="note">
+            Review build: {drafts} draft rules are shown. They are not published on the live site.
+          </p>
+        )
+      }
+    </header>
+
+    <div class="advisor__layout">
+      <form class="advisor__form" id="advisor-form" aria-label="Your application">
+        <p class="advisor__jump"><a href="#results-title">Jump to the recommendation</a></p>
+        {
+          INPUT_GROUPS.map((group) => (
+            <fieldset>
+              <legend>{group.title}</legend>
+              {INPUT_FIELDS.filter((f) => f.group === group.id).map((field) =>
+                'multiple' in field && field.multiple ? (
+                  <fieldset class="field field--multi">
+                    <legend>{field.label}</legend>
+                    {field.options.map((o) => (
+                      <label class="check">
+                        <input type="checkbox" name={field.id} value={o.value} />
+                        <span>{o.label}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                ) : (
+                  <div class="field">
+                    <label for={`field-${field.id}`}>{field.label}</label>
+                    <select id={`field-${field.id}`} name={field.id}>
+                      {field.options.map((o) => (
+                        <option value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                ),
+              )}
+            </fieldset>
+          ))
+        }
+        <p class="advisor__actions">
+          <button type="reset" class="button">Reset answers</button>
+        </p>
+      </form>
+
+      <section class="advisor__results" aria-labelledby="results-title">
+        <h2 id="results-title" class="advisor__results-title">Recommendation</h2>
+        <p id="advisor-status" class="visually-hidden" role="status" aria-live="polite"></p>
+        <div id="advisor-results">
+          <noscript>
+            <p>The Advisor runs in your browser and needs JavaScript.</p>
+          </noscript>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- "<" is escaped so no rule text can close this script element. -->
+  <script
+    type="application/json"
+    id="advisor-data"
+    set:html={JSON.stringify({ rules, chapters }).replace(/</g, '\\u003c')}
+  />
+</BaseLayout>
+
+<script>
+  import { initAdvisor } from '../scripts/advisor';
+  initAdvisor();
+</script>
+
+<style>
+  .advisor {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .advisor__header {
+    max-width: var(--measure);
+  }
+
+  .advisor__header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .advisor__lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .advisor__note {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-lg);
+  }
+
+  .advisor__review {
+    margin: var(--space-4) 0 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .advisor__layout {
+    display: grid;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 64rem) {
+    .advisor__layout {
+      grid-template-columns: 20rem minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-12);
+    }
+
+    .advisor__form {
+      position: sticky;
+      top: var(--space-4);
+      max-height: calc(100vh - var(--space-8));
+      overflow-y: auto;
+      padding-right: var(--space-2);
+    }
+  }
+
+  .advisor__form > fieldset {
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    border: 0;
+  }
+
+  .advisor__form > fieldset > legend {
+    margin-bottom: var(--space-3);
+    padding: 0;
+    font-weight: 600;
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+
+  .field label,
+  .field--multi legend {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .field select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+  }
+
+  .field--multi {
+    margin: 0 0 var(--space-3);
+    padding: 0;
+    border: 0;
+  }
+
+  .field--multi legend {
+    margin-bottom: var(--space-1);
+    padding: 0;
+  }
+
+  .check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    font-size: var(--text-sm);
+  }
+
+  .check input {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    accent-color: var(--color-accent-ink);
+  }
+
+  .advisor__jump {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  @media (min-width: 64rem) {
+    .advisor__jump {
+      display: none;
+    }
+  }
+
+  .advisor__results-title {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
+    scroll-margin-top: var(--space-4);
+  }
+
+  .advisor__actions {
+    margin: 0;
+  }
+
+  .advisor__results {
+    min-width: 0;
+  }
+
+  /* Result markup is created by the script. */
+  .advisor__results :global(.advice-section) {
+    margin-bottom: var(--space-8);
+  }
+
+  .advisor__results :global(h3) {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  .advisor__results :global(.advice-notice) {
+    margin: 0 0 var(--space-6);
+    padding: var(--space-4);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .advisor__results :global(.advice-empty),
+  .advisor__results :global(.advice-omitted) {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .advisor__results :global(.advice-omitted) {
+    margin-top: var(--space-3);
+  }
+
+  .advisor__results :global(.advice-items) {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .advisor__results :global(.advice-item) {
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--color-border);
+  }
+
+  .advisor__results :global(.advice-item p) {
+    margin: 0;
+  }
+
+  .advisor__results :global(.advice-item__read),
+  .advisor__results :global(.advice-item__why) {
+    margin-top: var(--space-1) !important;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* Architecture: tiers stacked top to bottom, joined by a green connector. */
+  .advisor__results :global(.flow) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .advisor__results :global(.flow__tier) {
+    position: relative;
+    padding: 0 0 var(--space-6) var(--space-6);
+    border-left: 2px solid var(--color-accent);
+  }
+
+  .advisor__results :global(.flow__tier:last-child) {
+    padding-bottom: 0;
+    border-left-color: transparent;
+  }
+
+  .advisor__results :global(.flow__tier::before) {
+    content: '';
+    position: absolute;
+    top: 0.35em;
+    left: -0.4rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .advisor__results :global(.flow__label) {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .advisor__results :global(.flow__components) {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .advisor__results :global(.flow__components) {
+      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    }
+  }
+
+  .advisor__results :global(.flow__component) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .advisor__results :global(.flow__component.is-added) {
+    border-color: var(--color-accent);
+  }
+
+  .advisor__results :global(.flow__name) {
+    font-weight: 600;
+  }
+
+  .advisor__results :global(.flow__why) {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .advisor__results :global(.advice-applied) {
+    margin-top: var(--space-8);
+    font-size: var(--text-sm);
+  }
+
+  .advisor__results :global(.advice-applied summary) {
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .advisor__results :global(.advice-applied ul) {
+    margin: var(--space-3) 0 0;
+    padding-left: 1.2em;
+  }
+</style>

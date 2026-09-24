@@ -1,0 +1,20 @@
+title: Remove the single application instance as a point of failure
+status: draft
+priority: 10
+when:
+  availability: [high, critical]
+architecture:
+  add: [multiple-app-instances]
+sections:
+  why:
+    - text: "At least two application instances behind a load balancer with health checks, so one failed instance or deploy does not take the service down."
+      chapters: [redundancy, health-checks, load-balancer]
+  alternatives:
+    - text: "If business-hours availability is enough, one instance with automatic restarts and tested backups costs less."
+      chapters: [backups]
+  bottlenecks:
+    - text: "The database becomes the single point of failure. Use a managed database with a standby in another availability zone, and test failover."
+      chapters: [failover, multi-az]
+  measure:
+    - text: "Availability against a service level objective, measured from the user side."
+      chapters: [slo]

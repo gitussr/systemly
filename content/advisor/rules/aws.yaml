@@ -1,0 +1,12 @@
+title: Map the architecture to AWS services
+status: draft
+when:
+  cloud: [aws]
+sections:
+  lockIn:
+    - text: "Concept to AWS: load balancer → ALB; relational database → RDS or Aurora; cache → ElastiCache; queue → SQS; object storage → S3; CDN → CloudFront."
+      chapters: [aws-architecture-mapping]
+    - "Services with standard interfaces (PostgreSQL, the Redis protocol, the S3 API) are easier to move than proprietary ones such as DynamoDB."
+  migration:
+    - text: "Define infrastructure as code from the start, so the setup is documented and can be recreated."
+      chapters: [infrastructure-as-code]
