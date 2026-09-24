@@ -3,19 +3,31 @@ import { render } from 'astro:content';
 import ChapterLayout from '../../layouts/ChapterLayout.astro';
 import { getCurriculum, getPublishedChapters } from '../../lib/content/chapters';
 import { neighbours } from '../../lib/content/catalog';
+import { buildConnections } from '../../lib/content/graph';
 
 export async function getStaticPaths() {
   const [chapters, curriculum] = await Promise.all([getPublishedChapters(), getCurriculum()]);
+  const connections = buildConnections(curriculum);
   return chapters.map((chapter) => ({
     params: { slug: chapter.id },
-    props: { chapter, ...neighbours(curriculum, chapter.data.slug) },
+    props: {
+      chapter,
+      ...neighbours(curriculum, chapter.data.slug),
+      connections: connections.get(chapter.data.slug) ?? { related: [], referencedBy: [] },
+    },
   }));
 }
 
-const { chapter, previous, next } = Astro.props;
+const { chapter, previous, next, connections } = Astro.props;
 const { Content, headings } = await render(chapter);
 ---
 
-<ChapterLayout data={chapter.data} headings={headings} previous={previous} next={next}>
+<ChapterLayout
+  data={chapter.data}
+  headings={headings}
+  previous={previous}
+  next={next}
+  connections={connections}
+>
   {chapter.data.status !== 'placeholder' && <Content />}
 </ChapterLayout>

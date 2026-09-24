@@ -1,0 +1,114 @@
+---
+import StatusTag from './StatusTag.astro';
+import { isAvailable, type ChapterMeta } from '../lib/content/catalog';
+import { levelLabel } from '../lib/content/levels';
+import { chapterHref } from '../lib/content/rules';
+
+interface Props {
+  related: ChapterMeta[];
+  referencedBy: ChapterMeta[];
+}
+
+const { related, referencedBy } = Astro.props;
+const groups = [
+  // Prefixed ids: chapters often have their own "Related Topics" heading (id related-topics).
+  { id: 'chapter-related', title: 'Related topics', chapters: related },
+  { id: 'chapter-referenced-by', title: 'Referenced by', chapters: referencedBy },
+].filter((g) => g.chapters.length > 0);
+---
+
+{
+  groups.map((group) => (
+    <section class="connections" aria-labelledby={group.id}>
+      <h2 id={group.id}>{group.title}</h2>
+      <ul>
+        {group.chapters.map((c) => (
+          <li>
+            <a class="connection" href={chapterHref(c.slug)}>
+              <span class="connection__meta">
+                {c.chapter && <span class="connection__number">{c.chapter}</span>}
+                <span>{levelLabel(c.level)}</span>
+              </span>
+              <span class="connection__row">
+                <span class:list={['connection__title', { 'is-muted': !isAvailable(c) }]}>
+                  {c.title}
+                </span>
+                <StatusTag status={c.status} />
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
+}
+
+<style>
+  .connections {
+    max-width: var(--measure);
+    margin-top: var(--space-12);
+  }
+
+  .connections h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .connections ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .connections ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .connection {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    height: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .connection:hover {
+    border-color: var(--color-accent);
+  }
+
+  .connection__meta {
+    display: flex;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .connection__number {
+    font-family: var(--font-mono);
+  }
+
+  .connection__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .connection__title {
+    font-weight: 500;
+  }
+
+  .connection__title.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+</style>

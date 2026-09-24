@@ -38,7 +38,7 @@ src/
 ├── integrations/ # build-time content report
 ├── layouts/      # page layouts
 ├── lib/
-│   ├── content/  # schema, publishing rules, catalog (ordering, grouping), curriculum-map parser
+│   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
 │   └── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 ├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>
 └── styles/       # tokens, global styles, prose styles
@@ -77,7 +77,11 @@ topics: [L4 vs L7, Algorithms]   # outline shown on the roadmap and placeholder 
 | `draft` | Not published | Shown, marked as draft |
 | `placeholder` | Published as "In preparation"; build prints `CONTENT REQUIRED` | Same |
 
-The build fails on duplicate slugs or invalid frontmatter.
+The build fails on duplicate slugs, invalid frontmatter, or a `related` slug that does not exist (or points to the chapter itself).
+
+### Related topics
+
+List outgoing links once, in `related`. Each chapter page shows them as **Related topics**, and every chapter that links *to* a page is listed there automatically under **Referenced by**, so links never need to be written in both directions.
 
 ### Headings
 

@@ -2,6 +2,7 @@
 import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import StatusTag from '../components/StatusTag.astro';
+import RelatedTopics from '../components/RelatedTopics.astro';
 import { levelLabel } from '../lib/content/levels';
 import { isAvailable, type ChapterMeta } from '../lib/content/catalog';
 import { chapterHref } from '../lib/content/rules';
@@ -13,9 +14,16 @@ interface Props {
   headings?: MarkdownHeading[];
   previous?: ChapterMeta;
   next?: ChapterMeta;
+  connections?: { related: ChapterMeta[]; referencedBy: ChapterMeta[] };
 }
 
-const { data, headings = [], previous, next } = Astro.props;
+const {
+  data,
+  headings = [],
+  previous,
+  next,
+  connections = { related: [], referencedBy: [] },
+} = Astro.props;
 const isPlaceholder = data.status === 'placeholder';
 const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
 ---
@@ -78,6 +86,8 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
             </div>
           )
         }
+
+        <RelatedTopics {...connections} />
 
         {
           (previous || next) && (
