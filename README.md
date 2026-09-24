@@ -31,6 +31,7 @@ npm run preview   # serve dist/
 content/          # canonical Markdown chapters (source of truth)
 ├── advisor/rules/  # Architecture Advisor rules, one YAML file each
 ├── evolution/      # Evolution Simulator scenarios, one YAML file each
+├── playground/checks.yaml  # wording for the Playground's checks
 ├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
 docs/
@@ -44,6 +45,7 @@ src/
 │   ├── advisor/  # Advisor inputs, components, rule schema and rules engine
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
 │   ├── evolution/ # scenario schema and stage comparison
+│   ├── playground/ # component types, graph model, checks, Mermaid output
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 │   ├── pwa/      # finds the files each page needs offline
 │   └── search/   # index definition, document builder, Markdown-to-text
@@ -67,7 +69,7 @@ Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / 
 - Each build writes `dist/sw.js` with a version hash of the worker code and every saved file; a new version replaces the old cache automatically.
 - The service worker is registered only in production builds (`npm run build` + `npm run preview` to test locally).
 
-App icons in `public/icons/` and `public/favicon.svg` are drawn from the Lora SemiBold "S" and the brand green dot, like the wordmark.
+The favicon (`public/favicon-32.png`, `favicon-48.png`) and app icons (`public/icons/`) are generated from `app-icon.png`, the brand mark, placed on white: `node scripts/generate-icons.mjs`.
 
 ## Architecture Advisor
 
@@ -116,6 +118,14 @@ stages:
 ```
 
 Components added since the previous stage are marked **New**. The page always shows that thresholds are not universal (MASTER-PROMPT §11). Stage switching works without JavaScript. Drafts are visible with `SHOW_DRAFTS=true`, as for Advisor rules.
+
+## Architecture Playground
+
+`/playground` lets readers build an architecture from the components in MASTER-PROMPT §12, connect them in the direction requests and messages flow, and set properties that matter (instances, where sessions and files live, cache invalidation, database network access). The diagram is drawn automatically (Mermaid) and the connections are also listed as text.
+
+Checks run on every change (`src/lib/playground/checks.ts`). Their wording lives in `content/playground/checks.yaml`: `title` is the warning, taken from §12 and always published; `why` and `fix` are published only when the entry is `status: approved` (visible in `SHOW_DRAFTS` builds before that).
+
+Presets follow §7 (V1–V4). The whole design is stored in the URL fragment, so "Copy link" shares it and nothing is sent to a server.
 
 ## Writing content
 

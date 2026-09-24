@@ -1,0 +1,377 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { SHOW_DRAFTS } from '../lib/content/env';
+import { CHECK_IDS } from '../lib/playground/checks';
+import { NODE_TYPES, PRESETS, DEFAULT_PRESET } from '../lib/playground/model';
+import '../styles/prose.css';
+
+const texts = (await getCollection('playgroundChecks')).map((e) => ({ ...e.data, id: e.id }));
+const missingTexts = CHECK_IDS.filter((id) => !texts.some((t) => t.id === id));
+if (missingTexts.length > 0) {
+  throw new Error(`content/playground/checks.yaml has no entry for: ${missingTexts.join(', ')}`);
+}
+
+// Chapters linked from component types and checks must exist.
+const curriculum = await getCurriculum();
+const titles = new Map(curriculum.map((c) => [c.slug, c.title]));
+const linked = new Set<string>([
+  ...NODE_TYPES.flatMap((t) => ('chapter' in t ? [t.chapter] : [])),
+  ...texts.flatMap((t) => t.chapters),
+]);
+const missing = [...linked].filter((slug) => !titles.has(slug));
+if (missing.length > 0) throw new Error(`Playground links to missing chapters: ${missing.join(', ')}`);
+
+// Titles are always published; explanations only once approved (or in review builds).
+const checks = Object.fromEntries(
+  texts.map((t) => {
+    const explained = t.status === 'approved' || SHOW_DRAFTS;
+    return [t.id, { title: t.title, why: explained ? t.why : undefined, fix: explained ? t.fix : undefined, chapters: t.chapters }];
+  }),
+);
+const chapters = Object.fromEntries([...linked].map((slug) => [slug, titles.get(slug)!]));
+const drafts = texts.filter((t) => t.status === 'draft').length;
+---
+
+<BaseLayout
+  title="Architecture Playground"
+  description="Build an architecture, connect its components, and get warnings that explain common mistakes."
+>
+  <div class="container playground">
+    <header class="playground__header">
+      <h1>Architecture Playground</h1>
+      <p class="playground__lede">
+        Build an architecture from components, connect them in the direction requests and messages
+        flow, and read the warnings. They point out common mistakes and explain why they matter.
+      </p>
+      {
+        SHOW_DRAFTS && drafts > 0 && (
+          <p class="playground__review" role="note">
+            Review build: draft explanations for {drafts} checks are shown. Only the warning titles
+            are published on the live site until explanations are approved.
+          </p>
+        )
+      }
+    </header>
+
+    <noscript>
+      <p class="playground__review">The Playground runs in your browser and needs JavaScript.</p>
+    </noscript>
+
+    <div class="playground__toolbar">
+      <form id="pg-preset" class="toolbar-group">
+        <label for="pg-preset-select">Start from</label>
+        <select id="pg-preset-select" name="preset">
+          {PRESETS.map((p) => <option value={p.id} selected={p.id === DEFAULT_PRESET}>{p.label}</option>)}
+        </select>
+        <button class="button" type="submit">Load</button>
+      </form>
+      <button class="button" type="button" id="pg-share">Copy link to this design</button>
+    </div>
+
+    <div class="playground__layout">
+      <section class="playground__editor" aria-labelledby="pg-components-title">
+        <h2 id="pg-components-title">Components</h2>
+        <form id="pg-add" class="toolbar-group">
+          <label for="pg-add-type">Add</label>
+          <select id="pg-add-type" name="type">
+            {NODE_TYPES.map((t) => <option value={t.id}>{t.label}</option>)}
+          </select>
+          <button class="button button--primary" type="submit">Add component</button>
+        </form>
+        <ol id="pg-nodes" class="pg-nodes"></ol>
+      </section>
+
+      <div class="playground__output">
+        <section aria-labelledby="pg-checks-title">
+          <h2 id="pg-checks-title">Checks</h2>
+          <p id="pg-status" class="visually-hidden" role="status" aria-live="polite"></p>
+          <div id="pg-checks"></div>
+        </section>
+
+        <section class="prose playground__diagram" aria-labelledby="pg-diagram-title">
+          <h2 id="pg-diagram-title">Diagram</h2>
+          <figure class="diagram" data-diagram="mermaid" id="pg-figure"></figure>
+          <h3 class="pg-flows-title">Connections</h3>
+          <ul id="pg-flows" class="pg-flows"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- "<" is escaped so no text can close this script element. -->
+  <script
+    type="application/json"
+    id="pg-data"
+    set:html={JSON.stringify({ checks, chapters }).replace(/</g, '\\u003c')}
+  />
+</BaseLayout>
+
+<script>
+  import { initPlayground } from '../scripts/playground';
+  initPlayground();
+</script>
+
+<style>
+  .playground {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .playground__header {
+    max-width: var(--measure);
+  }
+
+  .playground__header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .playground__lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .playground__review {
+    max-width: var(--measure);
+    margin: var(--space-4) 0 0;
+    padding: var(--space-2) var(--space-3);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .playground__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    align-items: end;
+    margin-top: var(--space-6);
+  }
+
+  .toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    margin: 0;
+  }
+
+  .toolbar-group label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .playground select,
+  .playground input[type='text'] {
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+  }
+
+  .playground h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .playground__layout {
+    display: grid;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 64rem) {
+    .playground__layout {
+      grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-12);
+    }
+  }
+
+  /* Phones: the result (checks, diagram) before the editor. */
+  .playground__output {
+    display: grid;
+    gap: var(--space-8);
+    min-width: 0;
+    order: -1;
+  }
+
+  @media (min-width: 64rem) {
+    .playground__output {
+      order: 0;
+    }
+  }
+
+  .playground__diagram.prose {
+    max-width: none;
+    font-size: var(--text-base);
+  }
+
+  /* Reserve room while Mermaid loads, so the page does not jump when the diagram appears. */
+  #pg-figure {
+    min-height: 18rem;
+  }
+
+  #pg-figure.is-rendered {
+    min-height: 0;
+  }
+
+  .pg-flows-title {
+    margin-top: var(--space-6) !important;
+    font-size: var(--text-base) !important;
+  }
+
+  /* Component cards, created by the script. */
+  .pg-nodes {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pg-nodes :global(.pg-node) {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .pg-nodes :global(.pg-node.has-warning) {
+    border-color: #c9a227;
+    box-shadow: inset 3px 0 0 #c9a227;
+  }
+
+  .pg-nodes :global(.pg-node__head) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pg-nodes :global(.pg-node__type) {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .pg-nodes :global(.pg-field) {
+    display: grid;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .pg-nodes :global(.pg-field > span) {
+    color: var(--color-text-muted);
+  }
+
+  .pg-nodes :global(.pg-field input),
+  .pg-nodes :global(.pg-field select) {
+    width: 100%;
+  }
+
+  .pg-nodes :global(.pg-edges) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pg-nodes :global(.pg-edge) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-left: var(--space-2);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+  }
+
+  .pg-nodes :global(.pg-connect) {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .pg-nodes :global(.pg-connect select) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .playground :global(.icon-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .playground :global(.icon-button:hover) {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  /* Checks, created by the script. */
+  #pg-checks :global(ul) {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  #pg-checks :global(.pg-finding) {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid #c9a227;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  #pg-checks :global(.pg-finding p) {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-sm);
+  }
+
+  #pg-checks :global(.pg-finding__title) {
+    margin: 0 !important;
+    font-size: var(--text-base) !important;
+    font-weight: 600;
+  }
+
+  #pg-checks :global(.pg-muted),
+  .pg-flows {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  #pg-checks :global(.pg-ok) {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: var(--text-sm);
+  }
+</style>

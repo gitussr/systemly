@@ -18,11 +18,12 @@ import { readContentFiles } from './content-files';
 import { chapterHref } from '../lib/content/rules';
 import { cssLatinFonts, htmlAssetRefs, jsStaticImports } from '../lib/pwa/assets';
 
-const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/offline'];
+const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/offline'];
 const STATIC_FILES = [
   '/search-index.json',
   '/manifest.webmanifest',
-  '/favicon.svg',
+  '/favicon-32.png',
+  '/favicon-48.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',

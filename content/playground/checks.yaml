@@ -1,0 +1,44 @@
+# Architecture Playground checks. One entry per check in src/lib/playground/checks.ts.
+# `title` is the warning shown for a finding (wording from MASTER-PROMPT §12) and is always published.
+# `why` and `fix` are explanations; they are published only when `status: approved`.
+- id: database-public
+  title: Database appears publicly exposed.
+  status: draft
+  why: "A database reachable from the internet can be attacked directly: password guessing, unpatched vulnerabilities, or an accidental open permission expose all of its data at once."
+  fix: "Keep the database on a private network and let only the application reach it."
+  chapters: [network-segmentation, least-privilege]
+
+- id: local-filesystem
+  title: Multiple application instances depend on local filesystem state.
+  status: draft
+  why: "Each instance has its own disk. A file saved by one instance is missing when the next request reaches another, and it is lost when that instance is replaced."
+  fix: "Store files in object storage or another shared store, and keep instances stateless."
+  chapters: [stateless-application-design, object-storage]
+
+- id: queue-without-consumer
+  title: Queue has no consumer.
+  status: draft
+  why: "Messages are added but nothing reads them, so the work is never done and the queue grows until it hits its limits."
+  fix: "Connect the queue to a worker or service that processes its messages."
+  chapters: [message-queue, worker]
+
+- id: no-redundancy
+  title: No redundancy detected.
+  status: draft
+  why: "Every application component runs as a single instance, so one crash or deploy stops the service. This can be the right choice early on, as long as the downtime is acceptable."
+  fix: "When availability matters, run at least two instances behind a load balancer with health checks."
+  chapters: [redundancy, horizontal-scaling, health-checks]
+
+- id: local-sessions
+  title: Session state may break when requests reach different instances.
+  status: draft
+  why: "A session kept in one instance's memory does not exist on the others. When the load balancer sends the next request elsewhere, the user appears logged out."
+  fix: "Keep sessions in a shared store (a database or cache) or use stateless tokens. Sticky sessions hide the problem but make failover and scaling uneven."
+  chapters: [sessions-cookies, stateless-application-design]
+
+- id: cache-invalidation-undefined
+  title: Cache invalidation strategy is undefined.
+  status: draft
+  why: "Without a rule for when cached data is removed or updated, readers can see stale data for an unknown length of time."
+  fix: "Decide per kind of data: expire after a time (TTL), update or delete on write, or both."
+  chapters: [cache-invalidation, ttl-expiration]

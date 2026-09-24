@@ -74,8 +74,8 @@ const current = Astro.url.pathname;
   }
 
   /*
-   * Phones: logo and tools on the first row, section links as a full-width second row.
-   * Wider screens: one row — logo, links, tools.
+   * Phones and small tablets: logo and tools on the first row, section links as a
+   * second row that scrolls sideways like tabs. From 48rem: one row — logo, links, tools.
    */
   .site-header__inner {
     display: grid;
@@ -87,7 +87,7 @@ const current = Astro.url.pathname;
     padding-block: var(--space-2) 0;
   }
 
-  @media (min-width: 40rem) {
+  @media (min-width: 48rem) {
     .site-header__inner {
       grid-template-columns: auto 1fr auto;
       grid-template-areas: 'brand nav tools';
@@ -120,11 +120,22 @@ const current = Astro.url.pathname;
 
   .site-header__nav {
     grid-area: nav;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  @media (min-width: 40rem) {
+  .site-header__nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
     .site-header__nav {
       justify-self: end;
+      margin-inline: 0;
+      padding-inline: 0;
+      overflow: visible;
     }
 
     .site-header__nav ul {
@@ -142,6 +153,7 @@ const current = Astro.url.pathname;
 
   .site-header__nav a {
     display: inline-flex;
+    white-space: nowrap;
     align-items: center;
     min-height: 2.75rem;
     color: var(--color-text-muted);

@@ -1,9 +1,10 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
 import { chapterSchema } from './lib/content/schema';
 import { DEV_ONLY_GLOB } from './lib/content/rules';
 import { ruleSchema } from './lib/advisor/schema';
 import { scenarioSchema } from './lib/evolution/schema';
+import { checkTextSchema } from './lib/playground/schema';
 
 const chapters = defineCollection({
   loader: glob({
@@ -27,4 +28,10 @@ const evolution = defineCollection({
   schema: scenarioSchema,
 });
 
-export const collections = { chapters, advisorRules, evolution };
+/** Architecture Playground check wording: one YAML list, one entry per check id. */
+const playgroundChecks = defineCollection({
+  loader: file('./content/playground/checks.yaml'),
+  schema: checkTextSchema,
+});
+
+export const collections = { chapters, advisorRules, evolution, playgroundChecks };

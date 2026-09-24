@@ -1,7 +1,7 @@
 /**
- * Renders Mermaid diagrams in chapter pages.
+ * Renders Mermaid diagrams (chapter pages, and the Playground's live diagram).
  *
- * - Mermaid (large) is imported only when the page contains a diagram.
+ * - Mermaid (large) is imported only when a page renders a diagram.
  * - Colours come from Systemly's design tokens and follow the light/dark theme.
  * - The diagram source stays available under "Diagram as text" for screen readers,
  *   copying and readers who prefer text. If rendering fails, the text fallback remains.
@@ -12,45 +12,62 @@ const SELECTOR = 'figure[data-diagram="mermaid"]';
 /** Smallest scale a diagram is drawn at before it scrolls (≈10px labels at the 15px base). */
 const MIN_SCALE = 0.65;
 let renderCount = 0;
+let mermaidPromise: Promise<Mermaid> | undefined;
+let configuredFor: string | undefined;
 
-export async function renderDiagrams(): Promise<void> {
-  const figures = [...document.querySelectorAll<HTMLElement>(SELECTOR)];
-  if (figures.length === 0) return;
-
-  // Keep each diagram's source before the fallback is replaced.
-  for (const figure of figures) {
-    figure.dataset.source ??= figure.querySelector('pre')?.textContent ?? '';
-  }
-
-  const { default: mermaid } = await import('mermaid');
-  await renderAll(mermaid, figures);
-
-  // Redraw with the other palette when the reader switches theme.
-  new MutationObserver(() => void renderAll(mermaid, figures)).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme'],
+async function loadMermaid(): Promise<Mermaid> {
+  mermaidPromise ??= import('mermaid').then((m) => {
+    // Redraw every diagram with the other palette when the reader switches theme.
+    new MutationObserver(() => {
+      for (const figure of document.querySelectorAll<HTMLElement>(SELECTOR)) void renderFigure(figure);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return m.default;
   });
+  return mermaidPromise;
 }
 
-async function renderAll(mermaid: Mermaid, figures: HTMLElement[]): Promise<void> {
-  mermaid.initialize(config());
-  for (const figure of figures) {
-    const source = figure.dataset.source ?? '';
-    if (!source.trim()) continue;
-    const id = `diagram-${++renderCount}`;
-    try {
-      // Validate first: on a syntax error Mermaid would otherwise render an error graphic.
-      if (!(await mermaid.parse(source, { suppressErrors: true }))) {
-        throw new Error('Invalid Mermaid syntax');
-      }
-      const { svg } = await mermaid.render(id, source);
-      figure.replaceChildren(canvas(svg), textAlternative(source));
-      figure.classList.add('is-rendered');
-    } catch (error) {
-      // Leave the readable source in place, and remove Mermaid's temporary container.
-      document.getElementById(`d${id}`)?.remove();
-      console.warn('[systemly] Diagram could not be rendered; showing its source instead.', error);
+/** Renders every diagram present when the page loads. */
+export async function renderDiagrams(): Promise<void> {
+  const figures = [...document.querySelectorAll<HTMLElement>(SELECTOR)];
+  for (const figure of figures) await renderFigure(figure);
+}
+
+/**
+ * Renders one figure from its source (data-source, or the fallback <pre> on first render).
+ * Safe to call again after the source changes.
+ */
+export async function renderFigure(figure: HTMLElement): Promise<void> {
+  // Keep the source before the fallback is replaced.
+  figure.dataset.source ??= figure.querySelector('pre')?.textContent ?? '';
+  const source = figure.dataset.source;
+  if (!source.trim()) {
+    figure.replaceChildren();
+    figure.classList.remove('is-rendered');
+    return;
+  }
+
+  const mermaid = await loadMermaid();
+  const theme = document.documentElement.dataset.theme ?? 'light';
+  if (configuredFor !== theme) {
+    mermaid.initialize(config());
+    configuredFor = theme;
+  }
+
+  const id = `diagram-${++renderCount}`;
+  try {
+    // Validate first: on a syntax error Mermaid would otherwise render an error graphic.
+    if (!(await mermaid.parse(source, { suppressErrors: true }))) {
+      throw new Error('Invalid Mermaid syntax');
     }
+    const { svg } = await mermaid.render(id, source);
+    // A newer source may have arrived while rendering; only draw the latest.
+    if (figure.dataset.source !== source) return;
+    figure.replaceChildren(canvas(svg), textAlternative(source));
+    figure.classList.add('is-rendered');
+  } catch (error) {
+    // Leave the readable source in place, and remove Mermaid's temporary container.
+    document.getElementById(`d${id}`)?.remove();
+    console.warn('[systemly] Diagram could not be rendered; showing its source instead.', error);
   }
 }
 
