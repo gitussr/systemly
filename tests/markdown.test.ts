@@ -83,3 +83,55 @@ describe('task lists', () => {
     expect(out).toContain('aria-label="Not completed"');
   });
 });
+
+describe('heading normalisation', () => {
+  const render = async (markdown: string, title?: string) =>
+    (await renderer.render(markdown, { frontmatter: title ? { title } : {} })).code;
+
+  it('drops a leading H1 that repeats the title and demotes # sections', async () => {
+    const out = await render('# What Is a System?\n\nIntro.\n\n# 1. Components\n\n## Detail\n\n### Key idea', 'What Is a System?');
+    expect(out).not.toContain('What Is a System?</h');
+    expect(out).toContain('<h2 id="1-components">1. Components</h2>');
+    expect(out).toContain('<h3 id="detail">Detail</h3>');
+    expect(out).toContain('<h4 id="key-idea">Key idea</h4>');
+    expect(out).not.toContain('<h1');
+  });
+
+  it('keeps a leading H1 that differs from the title, demoted', async () => {
+    const out = await render('# Something else\n\nText.', 'Title');
+    expect(out).toContain('<h2 id="something-else">Something else</h2>');
+  });
+
+  it('lifts headings written before the first # section so no level is skipped', async () => {
+    const out = await render(
+      [
+        '# Title',
+        '## Learning Objective',
+        '### Detail',
+        '## In One Sentence',
+        '# 1. First',
+        '## Sub',
+      ].join('\n\n'),
+      'Title',
+    );
+    expect(out).toContain('<h2 id="learning-objective">Learning Objective</h2>');
+    expect(out).toContain('<h3 id="detail">Detail</h3>');
+    expect(out).toContain('<h2 id="in-one-sentence">In One Sentence</h2>');
+    expect(out).toContain('<h2 id="1-first">1. First</h2>');
+    expect(out).toContain('<h3 id="sub">Sub</h3>');
+  });
+
+  it('closes skipped levels without flattening the outline', async () => {
+    const out = await render(['# 1. Section', '### Important', '#### Detail', '# 2. Next'].join('\n\n'), 'T');
+    expect(out).toContain('<h2 id="1-section">1. Section</h2>');
+    expect(out).toContain('<h3 id="important">Important</h3>');
+    expect(out).toContain('<h4 id="detail">Detail</h4>');
+    expect(out).toContain('<h2 id="2-next">2. Next</h2>');
+  });
+
+  it('leaves documents that already start at ## unchanged', async () => {
+    const out = await render('## Section\n\n### Sub', 'Title');
+    expect(out).toContain('<h2 id="section">Section</h2>');
+    expect(out).toContain('<h3 id="sub">Sub</h3>');
+  });
+});

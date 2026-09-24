@@ -16,22 +16,34 @@ const slug = z
   .string()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase kebab-case, e.g. "load-balancer".');
 
-export const chapterSchema = z.object({
-  title: z.string().min(1),
-  /** Stable URL identity: /learn/<slug>. Independent of the file's folder. */
-  slug,
-  level: z.number().int().min(LEVELS.min).max(LEVELS.max),
-  order: z.number().int().default(0),
-  difficulty: z.enum(DIFFICULTIES).optional(),
-  // Unapproved by default: nothing is published by accident.
-  status: z.enum(STATUSES).default('draft'),
-  /** "In one sentence". Written by the content owner. */
-  summary: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  aliases: z.array(z.string()).default([]),
-  /** Slugs of related chapters. Link validation arrives in Phase 3. */
-  related: z.array(slug).default([]),
-  updated: z.coerce.date().optional(),
-});
+export const chapterSchema = z
+  .object({
+    title: z.string().min(1),
+    /** Curriculum number from the map, e.g. "02.06": level 02, chapter 06. */
+    chapter: z
+      .string()
+      .regex(/^\d{2}\.\d{2}$/, 'Use the curriculum number format "LL.CC", e.g. "02.06".')
+      .optional(),
+    /** Stable URL identity: /learn/<slug>. Independent of the file's folder. */
+    slug,
+    level: z.number().int().min(LEVELS.min).max(LEVELS.max),
+    order: z.number().int().default(0),
+    difficulty: z.enum(DIFFICULTIES).optional(),
+    // Unapproved by default: nothing is published by accident.
+    status: z.enum(STATUSES).default('draft'),
+    /** "In one sentence". Written by the content owner. */
+    summary: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    aliases: z.array(z.string()).default([]),
+    /** Slugs of related chapters. Link validation arrives in Phase 3. */
+    related: z.array(slug).default([]),
+    /** Outline from the curriculum map; shown on the roadmap and on placeholder pages. */
+    topics: z.array(z.string()).default([]),
+    updated: z.coerce.date().optional(),
+  })
+  .refine((d) => d.chapter === undefined || Number(d.chapter.slice(0, 2)) === d.level, {
+    message: 'The chapter number must start with its level, e.g. level 2 → "02.xx".',
+    path: ['chapter'],
+  });
 
 export type ChapterData = z.infer<typeof chapterSchema>;

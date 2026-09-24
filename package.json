@@ -8,8 +8,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro check && vitest run && astro build",
+    "dev": "astro dev --force",
+    "build": "astro check && vitest run && astro build --force",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run"

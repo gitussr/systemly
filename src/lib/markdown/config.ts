@@ -5,6 +5,7 @@
 import { unified } from '@astrojs/markdown-remark';
 import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
 import { remarkCallouts } from './callouts';
+import { remarkNormalizeHeadings } from './headings';
 import { rehypeTableScroll } from './tables';
 import { rehypeTaskListLabels } from './task-lists';
 
@@ -25,6 +26,7 @@ export const markdownProcessor = unified({
   // Content is authored deliberately: do not rewrite quotes, dashes or ellipses.
   smartypants: false,
   remarkPlugins: [
+    remarkNormalizeHeadings,
     [
       remarkCallouts,
       {

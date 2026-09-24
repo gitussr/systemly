@@ -24,7 +24,7 @@ export function assertUniqueSlugs(entries: { slug: string; source: string }[]): 
 
 export interface ReportEntry {
   source: string;
-  data: Pick<ChapterData, 'title' | 'slug' | 'level' | 'status'>;
+  data: Pick<ChapterData, 'title' | 'slug' | 'level' | 'status'> & { chapter?: string };
 }
 
 export interface ContentReport {
@@ -35,7 +35,9 @@ export interface ContentReport {
 
 export function buildContentReport(entries: ReportEntry[]): ContentReport {
   const byLevel = (a: ReportEntry, b: ReportEntry) =>
-    a.data.level - b.data.level || a.data.title.localeCompare(b.data.title);
+    a.data.level - b.data.level ||
+    (a.data.chapter ?? '').localeCompare(b.data.chapter ?? '') ||
+    a.data.title.localeCompare(b.data.title);
   return {
     approved: entries.filter((e) => e.data.status === 'approved').length,
     drafts: entries.filter((e) => e.data.status === 'draft').sort(byLevel),
@@ -43,16 +45,16 @@ export function buildContentReport(entries: ReportEntry[]): ContentReport {
   };
 }
 
+function label(e: ReportEntry): string {
+  return e.data.chapter ? `${e.data.chapter} ${e.data.title}` : `Level ${e.data.level} — ${e.data.title}`;
+}
+
 export function formatContentReport(report: ContentReport): string[] {
   const lines = [
     `Content: ${report.approved} approved, ${report.placeholders.length} placeholder, ${report.drafts.length} draft`,
   ];
-  for (const e of report.placeholders) {
-    lines.push(`CONTENT REQUIRED: Level ${e.data.level} — ${e.data.title} (${e.source})`);
-  }
-  for (const e of report.drafts) {
-    lines.push(`Draft, not published: Level ${e.data.level} — ${e.data.title} (${e.source})`);
-  }
+  for (const e of report.placeholders) lines.push(`CONTENT REQUIRED: ${label(e)} (${e.source})`);
+  for (const e of report.drafts) lines.push(`Draft, not published: ${label(e)} (${e.source})`);
   return lines;
 }
 

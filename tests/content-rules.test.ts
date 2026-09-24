@@ -69,10 +69,12 @@ describe('content report', () => {
       entry('TCP', 0, 'placeholder'),
       entry('DNS', 0, 'approved'),
       entry('Queues', 5, 'draft'),
+      { source: 'content/lb.md', data: { title: 'Load Balancer', slug: 'load-balancer', level: 2, status: 'placeholder', chapter: '02.06' } },
     ]);
     expect(formatContentReport(report)).toEqual([
-      'Content: 1 approved, 2 placeholder, 1 draft',
+      'Content: 1 approved, 3 placeholder, 1 draft',
       'CONTENT REQUIRED: Level 0 — TCP (content/TCP.md)',
+      'CONTENT REQUIRED: 02.06 Load Balancer (content/lb.md)',
       'CONTENT REQUIRED: Level 4 — Sharding (content/Sharding.md)',
       'Draft, not published: Level 5 — Queues (content/Queues.md)',
     ]);
