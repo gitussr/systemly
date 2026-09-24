@@ -1,0 +1,56 @@
+# Stages and architectures follow MASTER-PROMPT §7 (V1–V4) and §11 (1,000 → 1,000,000 users).
+# The narrative fields (problem, measure, change, tradeOff) are drafts for owner review.
+title: A web application grows
+status: draft
+order: 1
+summary: "One application growing from its first thousand users to a million. Each step shows the problem that forced the change, what was measured, the one change made, and the trade-off it introduced."
+stages:
+  - label: "1,000 users"
+    title: "V1 — Simple monolith"
+    components: [client, app, database]
+    problem: "A new product with a small number of users. The goal is to learn what users need, not to handle scale."
+    measure:
+      - "p95 latency and error rate, to know what normal looks like."
+    change: "Build one application with one relational database."
+    tradeOff: "One instance is a single point of failure, and one machine has a ceiling on CPU and memory."
+    chapters: [monolith, relational-databases, what-is-a-system]
+    advisor: { users: under-1k, traffic: under-10 }
+
+  - label: "10,000 users"
+    title: "V2 — Several application instances"
+    components: [client, load-balancer, app, multiple-app-instances, database]
+    problem: "At peak, the single instance runs out of CPU, and every deploy or crash takes the whole site down."
+    measure:
+      - "Application CPU at peak."
+      - "Response time rising with concurrent requests."
+      - "Downtime during deploys."
+    change: "Run several identical application instances behind a load balancer."
+    tradeOff: "Instances must be stateless: sessions, uploads and in-memory data can no longer live on one machine. The database now receives connections from every instance."
+    chapters: [horizontal-scaling, load-balancer, stateless-application-design, connection-pooling]
+    advisor: { users: 10k-100k, traffic: 10-100 }
+
+  - label: "100,000 users"
+    title: "V3 — Cache and CDN"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, cache, database]
+    problem: "The database becomes the bottleneck: the same queries run thousands of times, and static files use application capacity."
+    measure:
+      - "The slowest queries and how often they run."
+      - "Database CPU and open connections."
+      - "The share of requests that read the same data."
+    change: "Optimise the database first (indexes, query fixes), then cache repeated reads and serve static files from a CDN."
+    tradeOff: "Cached data can be stale, so every write needs an invalidation decision. The CDN depends on correct cache headers."
+    chapters: [database-indexes, query-optimization, caching, cache-invalidation, cdn]
+    advisor: { users: 100k-1m, traffic: 100-1k }
+
+  - label: "1,000,000 users"
+    title: "V4 — Queues, workers and replicas"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, queue, workers, cache, database, read-replicas, object-storage]
+    problem: "Slow work inside requests (emails, image processing, reports) ties up application instances, and reads still load the primary database."
+    measure:
+      - "Time spent in the slowest request handlers."
+      - "Read load on the primary after caching."
+      - "Replication lag, once replicas exist."
+    change: "Move slow work to a queue processed by background workers, store files in object storage, and send reads to replicas."
+    tradeOff: "Work now finishes after the request, so it needs retries, idempotency and monitoring. Replica reads can be slightly stale. If one dataset still outgrows a single primary, partition that data, and only where measurements justify it."
+    chapters: [why-queues-exist, worker, idempotency, read-replicas, object-storage, database-partitioning]
+    advisor: { users: over-1m, traffic: 1k-10k }

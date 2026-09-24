@@ -1,0 +1,375 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchitectureFlow from '../components/ArchitectureFlow.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { SHOW_DRAFTS } from '../lib/content/env';
+import { chapterHref } from '../lib/content/rules';
+import { componentById } from '../lib/advisor/components';
+import { advisorHref, diffStages } from '../lib/evolution/diff';
+import type { Scenario } from '../lib/evolution/schema';
+import '../styles/prose.css';
+
+const entries = await getCollection('evolution');
+const scenarios: Scenario[] = entries
+  .filter((e) => e.data.status === 'approved' || SHOW_DRAFTS)
+  .map((e) => ({ ...e.data, id: e.id }))
+  .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+const drafts = entries.filter((e) => e.data.status === 'draft').length;
+
+// Every chapter a scenario links to must exist (placeholders count).
+const curriculum = await getCurriculum();
+const titles = new Map(curriculum.map((c) => [c.slug, c.title]));
+const missing = entries.flatMap((e) =>
+  e.data.stages.flatMap((s) => s.chapters.filter((slug) => !titles.has(slug)).map((slug) => `${e.id}: ${slug}`)),
+);
+if (missing.length > 0) throw new Error(`Evolution scenarios link to missing chapters: ${missing.join(', ')}`);
+
+const chapterSlugs = new Set(titles.keys());
+const maxStages = Math.max(0, ...scenarios.map((s) => s.stages.length));
+
+// Stage switching is CSS-only: each radio shows its matching panel.
+const stageCss = Array.from({ length: maxStages }, (_, i) =>
+  `.scenario:has(.stage-picker input[data-stage="${i}"]:checked) .stage[data-stage="${i}"]{display:block}`,
+).join('\n');
+
+console.info(
+  `[evolution] ${scenarios.length} ${scenarios.length === 1 ? 'scenario' : 'scenarios'} published` +
+    (SHOW_DRAFTS ? ' (drafts shown for review)' : `; ${drafts} draft ${drafts === 1 ? 'scenario' : 'scenarios'} awaiting approval`),
+);
+---
+
+<BaseLayout
+  title="Evolution Simulator"
+  description="See how an architecture changes as a system grows, and why each change happens."
+>
+  <div class="container evolution">
+    <header class="evolution__header">
+      <h1>Evolution Simulator</h1>
+      <p class="evolution__lede">
+        Architecture is not a fixed diagram. Step through a system as it grows: which problem
+        appears, what is measured, the one change that follows, and the trade-off it brings.
+      </p>
+      <div class="evolution__caveat" role="note">
+        <p><strong>These thresholds are not universal.</strong> The actual architecture depends on:</p>
+        <ul>
+          <li>workload</li>
+          <li>latency</li>
+          <li>data model</li>
+          <li>traffic pattern</li>
+          <li>infrastructure</li>
+          <li>application behavior</li>
+          <li>team</li>
+          <li>budget</li>
+        </ul>
+      </div>
+      {
+        SHOW_DRAFTS && drafts > 0 && (
+          <p class="evolution__review" role="note">
+            Review build: {drafts} draft {drafts === 1 ? 'scenario is' : 'scenarios are'} shown. Drafts are
+            not published on the live site.
+          </p>
+        )
+      }
+    </header>
+
+    {
+      scenarios.length === 0 && (
+        <p class="evolution__empty">
+          Scenarios are being written and reviewed. They will appear here once approved.
+        </p>
+      )
+    }
+
+    {
+      scenarios.map((scenario) => (
+        <section class="scenario" aria-labelledby={`scenario-${scenario.id}`}>
+          <h2 id={`scenario-${scenario.id}`}>{scenario.title}</h2>
+          {scenario.summary && <p class="scenario__summary">{scenario.summary}</p>}
+
+          <fieldset class="stage-picker">
+            <legend class="visually-hidden">Stage</legend>
+            {scenario.stages.map((stage, i) => (
+              <label>
+                <input
+                  type="radio"
+                  name={`stage-${scenario.id}`}
+                  value={i}
+                  data-stage={i}
+                  checked={i === 0}
+                  class="visually-hidden"
+                />
+                <span class="stage-picker__step">Step {i + 1}</span>
+                <span class="stage-picker__label">{stage.label}</span>
+              </label>
+            ))}
+          </fieldset>
+
+          {scenario.stages.map((stage, i) => {
+            const diff = diffStages(i > 0 ? scenario.stages[i - 1]!.components : undefined, stage.components);
+            const advisor = advisorHref(stage.advisor);
+            const names = (ids: readonly string[]) => ids.map((id) => componentById(id)?.label ?? id).join(', ');
+            return (
+              <article class="stage" data-stage={i} aria-labelledby={`stage-${scenario.id}-${i}`}>
+                <p class="stage__marker">
+                  Step {i + 1} of {scenario.stages.length} · {stage.label}
+                </p>
+                <h3 id={`stage-${scenario.id}-${i}`}>{stage.title}</h3>
+
+                <div class="stage__layout">
+                  <div class="stage__architecture">
+                    <ArchitectureFlow
+                      components={stage.components}
+                      added={diff.added}
+                      chapters={chapterSlugs}
+                      label={`${stage.title}: components, from the client down to storage`}
+                      compact
+                    />
+                    {diff.added.length > 0 && <p class="stage__diff">Added in this step: {names(diff.added)}.</p>}
+                    {diff.removed.length > 0 && <p class="stage__diff">Removed in this step: {names(diff.removed)}.</p>}
+                  </div>
+
+                  <div class="stage__story prose">
+                    {stage.problem && (
+                      <div class="callout callout--problem" role="note">
+                        <p class="callout__title">{i === 0 ? 'Starting point' : 'Problem'}</p>
+                        <p>{stage.problem}</p>
+                      </div>
+                    )}
+                    {stage.measure.length > 0 && (
+                      <div class="callout callout--note" role="note">
+                        <p class="callout__title">Measure</p>
+                        <ul>
+                          {stage.measure.map((m) => (
+                            <li>{m}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {stage.change && (
+                      <div class="callout callout--evolution" role="note">
+                        <p class="callout__title">Evolution</p>
+                        <p>{stage.change}</p>
+                      </div>
+                    )}
+                    {stage.tradeOff && (
+                      <div class="callout callout--trade-off" role="note">
+                        <p class="callout__title">Trade-off</p>
+                        <p>{stage.tradeOff}</p>
+                      </div>
+                    )}
+                    {stage.chapters.length > 0 && (
+                      <p class="stage__read">
+                        Read:{' '}
+                        {stage.chapters.map((slug, j) => (
+                          <>
+                            {j > 0 && ' · '}
+                            <a href={chapterHref(slug)}>{titles.get(slug)}</a>
+                          </>
+                        ))}
+                      </p>
+                    )}
+                    {advisor && (
+                      <p class="stage__advisor">
+                        <a href={advisor}>Try this stage in the Architecture Advisor</a>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      ))
+    }
+  </div>
+</BaseLayout>
+
+<style is:global set:html={`.scenario .stage{display:none}\n${stageCss}`}></style>
+
+<style>
+  .evolution {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .evolution__header {
+    max-width: var(--measure);
+  }
+
+  .evolution__header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .evolution__lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .evolution__caveat {
+    margin-top: var(--space-6);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    font-size: var(--text-sm);
+  }
+
+  .evolution__caveat p {
+    margin: 0 0 var(--space-2);
+  }
+
+  .evolution__caveat ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .evolution__caveat li {
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+  }
+
+  .evolution__review,
+  .evolution__empty {
+    max-width: var(--measure);
+    margin: var(--space-4) 0 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .evolution__empty {
+    margin-top: var(--space-8);
+    font-size: var(--text-base);
+  }
+
+  .scenario {
+    margin-top: var(--space-12);
+  }
+
+  .scenario h2 {
+    margin: 0;
+    font-size: var(--text-2xl);
+  }
+
+  .scenario__summary {
+    max-width: var(--measure);
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  /* Stage picker: a radio group styled as steps. */
+  .stage-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .stage-picker {
+      grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    }
+  }
+
+  .stage-picker label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+
+  .stage-picker label:hover {
+    border-color: var(--color-text-muted);
+  }
+
+  .stage-picker label:has(input:checked) {
+    border-color: var(--color-accent);
+    box-shadow: inset 0 -3px 0 var(--color-accent);
+  }
+
+  .stage-picker label:has(input:focus-visible) {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .stage-picker__step {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .stage-picker__label {
+    font-weight: 600;
+  }
+
+  .stage {
+    margin-top: var(--space-6);
+  }
+
+  .stage__marker {
+    margin: 0;
+    color: var(--color-accent-ink);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .stage h3 {
+    margin: var(--space-1) 0 var(--space-6);
+    font-size: var(--text-xl);
+  }
+
+  .stage__layout {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  /* Phones: the reasoning first, then the resulting architecture. */
+  .stage__story {
+    order: -1;
+  }
+
+  @media (min-width: 64rem) {
+    .stage__layout {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .stage__story {
+      order: 0;
+    }
+  }
+
+  .stage__diff {
+    margin: var(--space-4) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .stage__story.prose {
+    font-size: var(--text-base);
+  }
+
+  .stage__read,
+  .stage__advisor {
+    font-size: var(--text-sm);
+  }
+
+  .stage__read {
+    color: var(--color-text-muted);
+  }
+</style>

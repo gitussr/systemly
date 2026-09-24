@@ -18,7 +18,7 @@ import { readContentFiles } from './content-files';
 import { chapterHref } from '../lib/content/rules';
 import { cssLatinFonts, htmlAssetRefs, jsStaticImports } from '../lib/pwa/assets';
 
-const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/offline'];
+const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/offline'];
 const STATIC_FILES = [
   '/search-index.json',
   '/manifest.webmanifest',

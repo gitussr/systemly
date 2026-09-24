@@ -13,5 +13,6 @@ export const site = {
     { label: 'Roadmap', href: '/roadmap' },
     { label: 'Library', href: '/learn' },
     { label: 'Advisor', href: '/advisor' },
+    { label: 'Evolution', href: '/evolution' },
   ] as NavItem[],
 };

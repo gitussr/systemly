@@ -1,0 +1,59 @@
+---
+/**
+ * Server-rendered architecture diagram (same markup and styles as the Advisor's).
+ * Components are grouped by tier, top (clients) to bottom (storage).
+ */
+import { COMPONENTS, TIERS, type ComponentId } from '../lib/advisor/components';
+import { chapterHref } from '../lib/content/rules';
+import '../styles/architecture.css';
+
+interface Props {
+  components: readonly ComponentId[];
+  /** Components to mark as new in this version. */
+  added?: readonly ComponentId[];
+  /** Chapters that exist; components link to their chapter only if it does. */
+  chapters: ReadonlySet<string>;
+  label?: string;
+  /** Two columns on phones: for diagrams whose cards carry no explanation text. */
+  compact?: boolean;
+}
+
+const {
+  components,
+  added = [],
+  chapters,
+  label = 'Components, from the client down to storage',
+  compact = false,
+} = Astro.props;
+const present = COMPONENTS.filter((c) => components.includes(c.id));
+const isNew = new Set(added);
+---
+
+<ol class:list={['flow', { 'flow--compact': compact }]} aria-label={label}>
+  {
+    TIERS.map((tier) => {
+      const here = present.filter((c) => c.tier === tier.id);
+      return (
+        here.length > 0 && (
+          <li class="flow__tier">
+            <span class="flow__label">{tier.label}</span>
+            <ul class="flow__components">
+              {here.map((c) => (
+                <li class:list={['flow__component', { 'is-new': isNew.has(c.id) }]}>
+                  {isNew.has(c.id) && <span class="flow__badge">New</span>}
+                  {'chapter' in c && chapters.has(c.chapter) ? (
+                    <a class="flow__name" href={chapterHref(c.chapter)}>
+                      {c.label}
+                    </a>
+                  ) : (
+                    <span class="flow__name">{c.label}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </li>
+        )
+      );
+    })
+  }
+</ol>

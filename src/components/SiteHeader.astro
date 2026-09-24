@@ -126,11 +126,15 @@ const current = Astro.url.pathname;
     .site-header__nav {
       justify-self: end;
     }
+
+    .site-header__nav ul {
+      gap: var(--space-6);
+    }
   }
 
   .site-header__nav ul {
     display: flex;
-    gap: var(--space-6);
+    gap: var(--space-5);
     margin: 0;
     padding: 0;
     list-style: none;

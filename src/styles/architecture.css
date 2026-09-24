@@ -1,0 +1,108 @@
+/*
+ * Architecture diagrams as HTML: tiers from the client down to storage, joined by a
+ * green connector. Shared by the Advisor (rendered in the browser) and the Evolution
+ * Simulator (rendered at build time), so both stay identical.
+ */
+.flow {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow__tier {
+  position: relative;
+  padding: 0 0 var(--space-6) var(--space-6);
+  border-left: 2px solid var(--color-accent);
+}
+
+.flow__tier:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.flow__tier::before {
+  content: '';
+  position: absolute;
+  top: 0.35em;
+  left: -0.4rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.flow__label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.flow__components {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 40rem) {
+  .flow__components {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  }
+}
+
+.flow__component {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.flow__component.is-added {
+  border-color: var(--color-accent);
+}
+
+.flow__name {
+  font-weight: 600;
+}
+
+.flow__why {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.flow__component.is-new {
+  border-color: var(--color-accent);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.flow__badge {
+  align-self: flex-start;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Compact: two small cards per row on phones. */
+.flow--compact .flow__tier {
+  padding-bottom: var(--space-4);
+}
+
+.flow--compact .flow__components {
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+}
+
+.flow--compact .flow__component {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}

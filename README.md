@@ -30,6 +30,7 @@ npm run preview   # serve dist/
 ```text
 content/          # canonical Markdown chapters (source of truth)
 ├── advisor/rules/  # Architecture Advisor rules, one YAML file each
+├── evolution/      # Evolution Simulator scenarios, one YAML file each
 ├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
 docs/
@@ -42,6 +43,7 @@ src/
 ├── lib/
 │   ├── advisor/  # Advisor inputs, components, rule schema and rules engine
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
+│   ├── evolution/ # scenario schema and stage comparison
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 │   ├── pwa/      # finds the files each page needs offline
 │   └── search/   # index definition, document builder, Markdown-to-text
@@ -93,6 +95,27 @@ sections:                # why, alternatives, notYet, bottlenecks, scalingPath,
 Input fields and their allowed values are defined in `src/lib/advisor/inputs.ts`; the build rejects unknown fields, values, components, sections and chapter links.
 
 **Reviewing drafts:** build with `SHOW_DRAFTS=true` (e.g. a Vercel preview: `vercel deploy --build-env SHOW_DRAFTS=true`). Production builds never show drafts.
+
+## Evolution Simulator
+
+`/evolution` steps through a system as it grows. Each scenario is one YAML file in `content/evolution/`; each stage lists its components and the reasoning in Systemly's vocabulary:
+
+```yaml
+title: A web application grows
+status: draft                # only approved scenarios are published
+stages:
+  - label: "10,000 users"
+    title: "V2 — Several application instances"
+    components: [client, load-balancer, app, multiple-app-instances, database]
+    problem: "What forced the change."            # shown as Problem (Starting point for the first stage)
+    measure: ["Signals that showed it."]           # Measure
+    change: "The one change made."                 # Evolution
+    tradeOff: "What the change costs."             # Trade-off
+    chapters: [horizontal-scaling]
+    advisor: { users: 10k-100k, traffic: 10-100 }  # optional: "Try this stage in the Advisor"
+```
+
+Components added since the previous stage are marked **New**. The page always shows that thresholds are not universal (MASTER-PROMPT §11). Stage switching works without JavaScript. Drafts are visible with `SHOW_DRAFTS=true`, as for Advisor rules.
 
 ## Writing content
 

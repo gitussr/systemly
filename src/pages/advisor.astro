@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/architecture.css';
 import { getCurriculum } from '../lib/content/chapters';
 import { SHOW_DRAFTS } from '../lib/content/env';
 import { COMPONENTS } from '../lib/advisor/components';
@@ -313,82 +314,6 @@ console.info(
   .advisor__results :global(.advice-item__read),
   .advisor__results :global(.advice-item__why) {
     margin-top: var(--space-1) !important;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-
-  /* Architecture: tiers stacked top to bottom, joined by a green connector. */
-  .advisor__results :global(.flow) {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .advisor__results :global(.flow__tier) {
-    position: relative;
-    padding: 0 0 var(--space-6) var(--space-6);
-    border-left: 2px solid var(--color-accent);
-  }
-
-  .advisor__results :global(.flow__tier:last-child) {
-    padding-bottom: 0;
-    border-left-color: transparent;
-  }
-
-  .advisor__results :global(.flow__tier::before) {
-    content: '';
-    position: absolute;
-    top: 0.35em;
-    left: -0.4rem;
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: var(--color-accent);
-  }
-
-  .advisor__results :global(.flow__label) {
-    display: block;
-    margin-bottom: var(--space-2);
-    color: var(--color-text-muted);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-  }
-
-  .advisor__results :global(.flow__components) {
-    display: grid;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  @media (min-width: 40rem) {
-    .advisor__results :global(.flow__components) {
-      grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-    }
-  }
-
-  .advisor__results :global(.flow__component) {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-  }
-
-  .advisor__results :global(.flow__component.is-added) {
-    border-color: var(--color-accent);
-  }
-
-  .advisor__results :global(.flow__name) {
-    font-weight: 600;
-  }
-
-  .advisor__results :global(.flow__why) {
     color: var(--color-text-muted);
     font-size: var(--text-sm);
   }

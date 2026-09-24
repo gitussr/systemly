@@ -1,7 +1,7 @@
 /**
- * Building blocks the Advisor can place in a starting architecture, and where each sits
- * in the request path. Every architecture starts from client → application → database;
- * rules add the rest.
+ * Building blocks of an architecture (used by the Advisor and the Evolution Simulator),
+ * and where each sits in the request path. Every Advisor recommendation starts from
+ * client → application → database; rules add the rest.
  */
 
 export interface Component {
