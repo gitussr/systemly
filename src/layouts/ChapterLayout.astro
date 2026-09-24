@@ -1,0 +1,105 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { levelLabel } from '../lib/content/levels';
+import type { ChapterData } from '../lib/content/schema';
+import '../styles/prose.css';
+
+interface Props {
+  data: ChapterData;
+}
+
+const { data } = Astro.props;
+const isPlaceholder = data.status === 'placeholder';
+---
+
+<BaseLayout title={data.title} description={data.summary}>
+  <article class="container chapter">
+    <header class="chapter__header">
+      <p class="chapter__meta">
+        <span>{levelLabel(data.level)}</span>
+        {data.difficulty && <span class="chapter__difficulty">{data.difficulty}</span>}
+        {data.status === 'draft' && <span class="chapter__badge">Draft — not published</span>}
+      </p>
+      <h1 class="chapter__title">{data.title}</h1>
+      {data.summary && <p class="chapter__summary">{data.summary}</p>}
+    </header>
+
+    {
+      isPlaceholder ? (
+        <div class="chapter__placeholder" role="status">
+          <p class="chapter__placeholder-title">In preparation</p>
+          <p>This chapter is being written and reviewed. It will appear here once approved.</p>
+        </div>
+      ) : (
+        <div class="prose">
+          <slot />
+        </div>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .chapter {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .chapter__header,
+  .chapter__placeholder {
+    max-width: var(--measure);
+  }
+
+  .chapter__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .chapter__difficulty {
+    text-transform: capitalize;
+  }
+
+  .chapter__badge {
+    padding-inline: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .chapter__title {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .chapter__summary {
+    margin: var(--space-4) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    color: var(--color-text-muted);
+  }
+
+  .chapter__header {
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .chapter__placeholder {
+    padding: var(--space-6);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .chapter__placeholder p {
+    margin: 0;
+  }
+
+  .chapter__placeholder-title {
+    margin-bottom: var(--space-2) !important;
+    font-weight: 600;
+  }
+</style>
