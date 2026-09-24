@@ -10,6 +10,7 @@ An educational PWA for developers learning system design, from first principles 
 - TypeScript (strict).
 - Plain CSS with design tokens in `src/styles/tokens.css`.
 - Self-hosted fonts: Lora (titles), Google Sans (body/UI), both SIL OFL 1.1.
+- [MiniSearch](https://lucaong.github.io/minisearch/) for client-side search over a build-time index.
 - Deployed on Vercel as static files (no adapter).
 
 ## Development
@@ -39,8 +40,10 @@ src/
 ├── layouts/      # page layouts
 ├── lib/
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
-│   └── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
-├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>
+│   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
+│   └── search/   # index definition, document builder, Markdown-to-text
+├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /search, /search-index.json
+├── scripts/      # browser scripts (search page)
 └── styles/       # tokens, global styles, prose styles
 scripts/          # one-off asset scripts
 tests/            # Vitest unit tests
@@ -78,6 +81,12 @@ topics: [L4 vs L7, Algorithms]   # outline shown on the roadmap and placeholder 
 | `placeholder` | Published as "In preparation"; build prints `CONTENT REQUIRED` | Same |
 
 The build fails on duplicate slugs, invalid frontmatter, or a `related` slug that does not exist (or points to the chapter itself).
+
+### Search
+
+`/search-index.json` is built from every published chapter and downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
+
+Press `/` anywhere to search.
 
 ### Related topics
 

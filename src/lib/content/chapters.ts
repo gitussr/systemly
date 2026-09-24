@@ -13,10 +13,13 @@ export async function getPublishedChapters(): Promise<ChapterEntry[]> {
   return getCollection('chapters', ({ data }) => isVisible(data.status, import.meta.env.DEV));
 }
 
-/** Chapters listed in the roadmap, library and previous/next links (no dev fixtures). */
-export async function getCurriculum(): Promise<ChapterEntry['data'][]> {
+/** Entries listed in the roadmap, library, search and previous/next links (no dev fixtures). */
+export async function getCurriculumEntries(): Promise<ChapterEntry[]> {
   const entries = await getPublishedChapters();
-  return sortChapters(
-    entries.filter((entry) => !isDevOnlyPath(entry.filePath ?? '')).map((entry) => entry.data),
-  );
+  return entries.filter((entry) => !isDevOnlyPath(entry.filePath ?? ''));
+}
+
+/** Curriculum metadata in curriculum order. */
+export async function getCurriculum(): Promise<ChapterEntry['data'][]> {
+  return sortChapters((await getCurriculumEntries()).map((entry) => entry.data));
 }

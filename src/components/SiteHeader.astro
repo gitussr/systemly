@@ -11,11 +11,11 @@ const current = Astro.url.pathname;
     <a class="site-header__brand" href="/" aria-label={`${site.name} home`}>
       <Logo />
     </a>
-    <div class="site-header__end">
+
     {
       site.nav.length > 0 && (
-        <nav aria-label="Main">
-          <ul class="site-header__nav">
+        <nav class="site-header__nav" aria-label="Main">
+          <ul>
             {site.nav.map((item) => (
               <li>
                 <a
@@ -30,10 +30,42 @@ const current = Astro.url.pathname;
         </nav>
       )
     }
+
+    <div class="site-header__tools">
+      <a
+        class="header-icon"
+        href="/search"
+        aria-label="Search"
+        aria-keyshortcuts="/"
+        aria-current={current.startsWith('/search') ? 'page' : undefined}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+      </a>
       <ThemeToggle />
     </div>
   </div>
 </header>
+
+<script is:inline>
+  // Press "/" anywhere (outside a text field) to search.
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const field = document.querySelector('#search-input');
+    if (field) field.focus();
+    else location.href = '/search';
+  });
+</script>
 
 <style>
   .site-header {
@@ -41,20 +73,35 @@ const current = Astro.url.pathname;
     background: var(--color-bg);
   }
 
+  /*
+   * Phones: logo and tools on the first row, section links as a full-width second row.
+   * Wider screens: one row — logo, links, tools.
+   */
   .site-header__inner {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'brand tools'
+      'nav nav';
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2) var(--space-6);
-    min-height: 3.5rem;
-    padding-block: var(--space-3);
+    padding-block: var(--space-2) 0;
+  }
+
+  @media (min-width: 40rem) {
+    .site-header__inner {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: 'brand nav tools';
+      column-gap: var(--space-8);
+      min-height: 4rem;
+      padding-block: var(--space-2);
+    }
   }
 
   .site-header__brand {
+    grid-area: brand;
     display: inline-flex;
-    color: var(--color-text);
     padding-block: var(--space-1);
+    color: var(--color-text);
   }
 
   .site-header__brand :global(.logo) {
@@ -63,40 +110,36 @@ const current = Astro.url.pathname;
     height: auto;
   }
 
-  /* Smallest phones: keep logo, nav and theme toggle on one row. */
-  @media (max-width: 22.5rem) {
-    .site-header__inner {
-      column-gap: var(--space-3);
-    }
-
-    .site-header__brand :global(.logo) {
-      width: 6.25rem;
-    }
-
-    .site-header__end,
-    .site-header__nav {
-      column-gap: var(--space-3);
-    }
-  }
-
-  .site-header__end {
+  .site-header__tools {
+    grid-area: tools;
     display: flex;
+    justify-self: end;
     align-items: center;
-    gap: var(--space-3);
+    margin-right: calc(var(--space-2) * -1);
   }
 
   .site-header__nav {
+    grid-area: nav;
+  }
+
+  @media (min-width: 40rem) {
+    .site-header__nav {
+      justify-self: end;
+    }
+  }
+
+  .site-header__nav ul {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-4);
+    gap: var(--space-6);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .site-header__nav a {
-    display: inline-block;
-    padding-block: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     font-weight: 500;
@@ -110,5 +153,29 @@ const current = Astro.url.pathname;
 
   .site-header__nav a[aria-current='page'] {
     box-shadow: inset 0 -2px 0 var(--color-accent);
+  }
+
+  .header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+  }
+
+  .header-icon:hover,
+  .header-icon[aria-current='page'] {
+    color: var(--color-text);
+  }
+
+  .header-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
   }
 </style>
