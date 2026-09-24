@@ -36,12 +36,14 @@ docs/
 src/
 ├── components/   # Astro components
 ├── config/       # site metadata and navigation
-├── integrations/ # build-time content report
+├── integrations/ # build-time content report and service-worker generator
 ├── layouts/      # page layouts
 ├── lib/
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
+│   ├── pwa/      # finds the files each page needs offline
 │   └── search/   # index definition, document builder, Markdown-to-text
+├── service-worker/ # sw.js source (the build prepends the version and file list)
 ├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /search, /search-index.json
 ├── scripts/      # browser scripts (search page)
 └── styles/       # tokens, global styles, prose styles
@@ -50,6 +52,18 @@ tests/            # Vitest unit tests
 ```
 
 `src/assets/logo.svg` (inlined by `Logo.astro`) is the wordmark rebuilt as vector outlines from Lora SemiBold, using the text settings in `logo.psd` (100 px, tracking −20 on "Systeml", −120 on "y."). It matches `logo.png` to within ~1% of pixels but is not cropped, stays sharp at any size, and its letters use the current text colour, so it follows the theme. `logo.png` and `logo.psd` remain as design sources.
+
+## Installable app and offline reading
+
+Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / "Install app") and reads offline.
+
+- On first visit the service worker saves the home, roadmap, library, search and offline pages, the search index, icons, CSS, the Latin font files, and **every approved chapter** (about 0.5 MB today).
+- Pages are fetched from the network first, so online readers always get the latest text; offline, the saved copy is shown. Pages never opened and not approved show `/offline`.
+- Files loaded on demand (e.g. Mermaid) are saved the first time they are used.
+- Each build writes `dist/sw.js` with a version hash of the worker code and every saved file; a new version replaces the old cache automatically.
+- The service worker is registered only in production builds (`npm run build` + `npm run preview` to test locally).
+
+App icons in `public/icons/` and `public/favicon.svg` are drawn from the Lora SemiBold "S" and the brand green dot, like the wordmark.
 
 ## Writing content
 

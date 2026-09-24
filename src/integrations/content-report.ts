@@ -7,21 +7,15 @@
  *
  * Frontmatter errors are reported by Astro's content collection itself.
  */
-import { readdir, readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
-import { parseFrontmatter } from '@astrojs/markdown-remark';
-import { chapterSchema, type ChapterData } from '../lib/content/schema';
+import { readContentFiles } from './content-files';
 import { findRelatedIssues, formatRelatedIssue } from '../lib/content/graph';
 import {
   assertUniqueSlugs,
   buildContentReport,
   formatContentReport,
-  isDevOnlyPath,
 } from '../lib/content/rules';
-
-const CONTENT_DIR = 'content';
 
 export function contentReport(): AstroIntegration {
   let root = process.cwd();
@@ -33,7 +27,7 @@ export function contentReport(): AstroIntegration {
         root = fileURLToPath(config.root);
       },
       'astro:build:start': async ({ logger }) => {
-        const entries = await readEntries(path.join(root, CONTENT_DIR), root);
+        const entries = await readContentFiles(root);
         assertUniqueSlugs(entries.map((e) => ({ slug: e.data.slug, source: e.source })));
 
         const issues = findRelatedIssues(
@@ -54,34 +48,3 @@ export function contentReport(): AstroIntegration {
   };
 }
 
-interface Entry {
-  source: string;
-  data: ChapterData;
-}
-
-async function readEntries(dir: string, root: string): Promise<Entry[]> {
-  const files = await listMarkdown(dir);
-  const entries: Entry[] = [];
-  for (const file of files) {
-    if (isDevOnlyPath(path.relative(dir, file))) continue;
-    const { frontmatter } = parseFrontmatter(await readFile(file, 'utf8'));
-    const parsed = chapterSchema.safeParse(frontmatter);
-    if (parsed.success) {
-      entries.push({ source: path.relative(root, file).replaceAll('\\', '/'), data: parsed.data });
-    }
-  }
-  return entries;
-}
-
-async function listMarkdown(dir: string): Promise<string[]> {
-  let items;
-  try {
-    items = await readdir(dir, { withFileTypes: true, recursive: true });
-  } catch {
-    return [];
-  }
-  return items
-    .filter((item) => item.isFile() && item.name.endsWith('.md'))
-    .map((item) => path.join(item.parentPath, item.name))
-    .sort();
-}

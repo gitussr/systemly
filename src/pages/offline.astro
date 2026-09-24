@@ -1,0 +1,43 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Offline" description="This page is not available offline yet.">
+  <section class="container offline">
+    <h1>You are offline</h1>
+    <p>
+      This page has not been saved on this device yet. Pages you have opened before, and every
+      published chapter, are available without a connection.
+    </p>
+    <ul>
+      <li><a href="/roadmap">Roadmap</a></li>
+      <li><a href="/learn">Library</a></li>
+      <li><a href="/search">Search</a></li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .offline {
+    max-width: calc(var(--measure) + var(--gutter) * 2);
+    padding-block: var(--space-12);
+  }
+
+  .offline h1 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-3xl);
+  }
+
+  .offline p {
+    color: var(--color-text-muted);
+  }
+
+  .offline ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>
