@@ -33,7 +33,6 @@ content/          # canonical Markdown chapters (source of truth)
 docs/
 └── curriculum-map.md   # the approved curriculum map
 src/
-├── assets/       # images processed at build time (logo)
 ├── components/   # Astro components
 ├── config/       # site metadata and navigation
 ├── integrations/ # build-time content report
@@ -47,7 +46,7 @@ scripts/          # one-off asset scripts
 tests/            # Vitest unit tests
 ```
 
-`src/assets/logo-dark.png` is derived from `logo.png` by `node scripts/make-dark-logo.mjs`.
+`public/logo.svg` is the wordmark rebuilt as vector outlines from Lora SemiBold, using the text settings in `logo.psd` (100 px, tracking −20 on "Systeml", −120 on "y."). It matches `logo.png` to within ~1% of pixels but is not cropped, stays sharp at any size, and switches the letter colour for dark mode inside the SVG. `logo.png` and `logo.psd` remain as design sources.
 
 ## Writing content
 

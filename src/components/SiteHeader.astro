@@ -1,33 +1,14 @@
 ---
-import { getImage } from 'astro:assets';
-import logo from '../assets/logo.png';
-import logoDark from '../assets/logo-dark.png';
 import { site } from '../config/site';
 
 const current = Astro.url.pathname;
-
-// One image per theme; <picture> makes the browser download only the matching one.
-const logoOptions = { width: 112, densities: [1, 2], format: 'webp' as const };
-const [light, dark] = await Promise.all([
-  getImage({ src: logo, ...logoOptions }),
-  getImage({ src: logoDark, ...logoOptions }),
-]);
 ---
 
 <header class="site-header">
   <div class="container site-header__inner">
     <a class="site-header__brand" href="/" aria-label={`${site.name} home`}>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset={dark.srcSet.attribute} />
-        <img
-          src={light.src}
-          srcset={light.srcSet.attribute}
-          width={light.attributes.width}
-          height={light.attributes.height}
-          alt=""
-          decoding="async"
-        />
-      </picture>
+      <!-- Vector wordmark; switches its letter colour for dark mode inside the SVG. -->
+      <img src="/logo.svg" width="116" height="31" alt="" />
     </a>
     {
       site.nav.length > 0 && (
@@ -73,7 +54,7 @@ const [light, dark] = await Promise.all([
 
   .site-header__brand img {
     display: block;
-    width: 7rem;
+    width: 7.25rem;
     height: auto;
   }
 
