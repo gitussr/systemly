@@ -9,7 +9,7 @@
   margin-top: var(--space-4);
 }
 
-.prose :where(p, ul, ol, blockquote, pre, .table-scroll, .callout) {
+.prose :where(p, ul, ol, blockquote, pre, .table-scroll, .callout, .diagram) {
   margin-block: 0;
 }
 
@@ -114,6 +114,50 @@
 :root[data-theme='dark'] .prose .astro-code,
 :root[data-theme='dark'] .prose .astro-code span {
   color: var(--shiki-dark) !important;
+}
+
+/* Diagrams (Mermaid) */
+.prose .diagram {
+  margin-inline: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.prose * + .diagram {
+  margin-top: var(--space-6);
+}
+
+/* Before rendering (or without JavaScript) the source is shown as plain text. */
+.prose .diagram__fallback {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+}
+
+.prose .diagram__canvas {
+  overflow-x: auto;
+  text-align: center;
+}
+
+.prose .diagram__canvas svg {
+  height: auto;
+}
+
+.prose .diagram__source {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.prose .diagram__source summary {
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.prose .diagram__source pre {
+  margin-top: var(--space-2);
 }
 
 /* Tables */

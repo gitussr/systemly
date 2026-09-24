@@ -94,7 +94,32 @@ curl -sS -H "Accept: application/json" "https://example.com/api/v1/resources?lim
 
 ```mermaid
 flowchart LR
-  Client --> App --> DB
+  accTitle: Sample request path
+  accDescr: A client calls a load balancer, which forwards to two app instances that share one database.
+  Client --> LB[Load balancer]
+  subgraph Apps[Application tier]
+    A1[App 1]
+    A2[App 2]
+  end
+  LB --> A1
+  LB --> A2
+  A1 -- SQL --> DB[(Database)]
+  A2 -- SQL --> DB
+```
+
+```mermaid
+sequenceDiagram
+  Client->>API: GET /orders
+  API->>Cache: lookup
+  Cache-->>API: miss
+  API->>DB: query
+  DB-->>API: rows
+  API-->>Client: 200 OK
+```
+
+```mermaid
+flowchart LR
+  this is not valid mermaid ((
 ```
 
 ## Table

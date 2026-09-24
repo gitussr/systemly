@@ -6,13 +6,14 @@ import { unified } from '@astrojs/markdown-remark';
 import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
 import { remarkCallouts } from './callouts';
 import { remarkNormalizeHeadings } from './headings';
+import { rehypeMermaid } from './mermaid';
 import { rehypeTableScroll } from './tables';
 import { rehypeTaskListLabels } from './task-lists';
 
 export const sharedMarkdownOptions = {
   syntaxHighlight: {
     type: 'shiki',
-    // Mermaid is rendered as a diagram in Phase 5; until then it stays as readable source.
+    // Mermaid blocks are turned into diagrams by rehypeMermaid and rendered in the browser.
     excludeLangs: ['mermaid'],
   },
   shikiConfig: {
@@ -35,7 +36,7 @@ export const markdownProcessor = unified({
       },
     ],
   ],
-  rehypePlugins: [rehypeTableScroll, rehypeTaskListLabels],
+  rehypePlugins: [rehypeMermaid, rehypeTableScroll, rehypeTaskListLabels],
 });
 
 export const markdownConfig = {

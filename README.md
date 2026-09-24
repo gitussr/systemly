@@ -114,6 +114,21 @@ GitHub alert syntax, so files still read correctly on GitHub:
 
 Types: `MENTAL-MODEL`, `PROBLEM`, `TRADE-OFF`, `FAILURE`, `EVOLUTION`, `LOCK-IN`, and GitHub's `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, `CAUTION`.
 
-The renderer keeps text exactly as written: it does not convert quotes, `--` or `...` into typographic characters. `mermaid` code blocks show as source until diagram rendering is added.
+The renderer keeps text exactly as written: it does not convert quotes, `--` or `...` into typographic characters.
+
+### Diagrams
+
+Write diagrams as ````mermaid```` code blocks. They are drawn in the browser with Systemly's colours (connections in green), redraw when the theme changes, and keep their source under "Diagram as text" for screen readers and copying. Mermaid is only downloaded on pages that contain a diagram. If a diagram has a syntax error, the page shows its source instead.
+
+Give each diagram an accessible title and description:
+
+````markdown
+```mermaid
+flowchart LR
+  accTitle: Request path
+  accDescr: The client calls the load balancer, which forwards to two app instances.
+  Client --> LB[Load balancer] --> App
+```
+````
 
 To preview every supported format, run `npm run dev` and open `/learn/rendering-test`.

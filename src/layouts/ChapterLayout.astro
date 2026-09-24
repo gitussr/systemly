@@ -137,6 +137,13 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
   </div>
 </BaseLayout>
 
+<script>
+  // Loads the diagram renderer (and Mermaid) only when this chapter contains a diagram.
+  if (document.querySelector('figure[data-diagram]')) {
+    void import('../scripts/diagrams').then(({ renderDiagrams }) => renderDiagrams());
+  }
+</script>
+
 <style>
   .chapter-page {
     padding-block: var(--space-6) var(--space-12);

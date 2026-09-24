@@ -58,14 +58,21 @@ describe('content preservation', () => {
     expect(out).toContain('"hi" -- then wait...');
   });
 
-  it('highlights code but leaves mermaid as source for the diagram phase', async () => {
+  it('highlights code and turns mermaid into a diagram figure with its source as fallback', async () => {
     const ts = await html('```ts\nconst a = 1;\n```');
     expect(ts).toContain('astro-code');
 
     const mermaid = await html('```mermaid\nflowchart LR\n  A --> B\n```');
     expect(mermaid).not.toContain('astro-code');
-    expect(mermaid).toContain('class="language-mermaid"');
+    expect(mermaid).toMatch(
+      /^<figure class="diagram" data-diagram="mermaid"><pre class="diagram__fallback"><code>flowchart LR/,
+    );
     expect(mermaid).toMatch(/A --(?:>|&gt;|&#x3E;) B/);
+  });
+
+  it('only turns mermaid blocks into diagrams', async () => {
+    const out = await html('```text\nflowchart LR\n```');
+    expect(out).not.toContain('data-diagram');
   });
 });
 
