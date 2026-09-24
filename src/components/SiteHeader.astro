@@ -1,0 +1,106 @@
+---
+import { getImage } from 'astro:assets';
+import logo from '../assets/logo.png';
+import logoDark from '../assets/logo-dark.png';
+import { site } from '../config/site';
+
+const current = Astro.url.pathname;
+
+// One image per theme; <picture> makes the browser download only the matching one.
+const logoOptions = { width: 112, densities: [1, 2], format: 'webp' as const };
+const [light, dark] = await Promise.all([
+  getImage({ src: logo, ...logoOptions }),
+  getImage({ src: logoDark, ...logoOptions }),
+]);
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__brand" href="/" aria-label={`${site.name} home`}>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset={dark.srcSet.attribute} />
+        <img
+          src={light.src}
+          srcset={light.srcSet.attribute}
+          width={light.attributes.width}
+          height={light.attributes.height}
+          alt=""
+          decoding="async"
+        />
+      </picture>
+    </a>
+    {
+      site.nav.length > 0 && (
+        <nav aria-label="Main">
+          <ul class="site-header__nav">
+            {site.nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={current.startsWith(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+  }
+
+  .site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+    min-height: 3.5rem;
+    padding-block: var(--space-3);
+  }
+
+  .site-header__brand {
+    display: inline-flex;
+    padding-block: var(--space-1);
+  }
+
+  .site-header__brand img {
+    display: block;
+    width: 7rem;
+    height: auto;
+  }
+
+  .site-header__nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-header__nav a {
+    display: inline-block;
+    padding-block: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .site-header__nav a:hover,
+  .site-header__nav a[aria-current='page'] {
+    color: var(--color-text);
+  }
+
+  .site-header__nav a[aria-current='page'] {
+    box-shadow: inset 0 -2px 0 var(--color-accent);
+  }
+</style>

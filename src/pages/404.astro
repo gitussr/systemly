@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found">
+  <section class="container not-found">
+    <h1>Page not found</h1>
+    <p>This page does not exist, or has moved.</p>
+    <p><a href="/">Go to the home page</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding-block: var(--space-12);
+  }
+</style>
