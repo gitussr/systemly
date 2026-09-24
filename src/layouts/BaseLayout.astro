@@ -23,8 +23,15 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#f8f8f8" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#07151e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8f8f8" />
+    <!-- Light is the default; apply a saved dark choice before first paint to avoid a flash. -->
+    <script is:inline>
+      try {
+        if (localStorage.getItem('systemly-theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      } catch {}
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="generator" content={Astro.generator} />
   </head>

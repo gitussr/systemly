@@ -111,13 +111,6 @@
   background-color: var(--color-code-bg) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .prose .astro-code,
-  :root:not([data-theme='light']) .prose .astro-code span {
-    color: var(--shiki-dark) !important;
-  }
-}
-
 :root[data-theme='dark'] .prose .astro-code,
 :root[data-theme='dark'] .prose .astro-code span {
   color: var(--shiki-dark) !important;

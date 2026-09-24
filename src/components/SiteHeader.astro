@@ -1,4 +1,6 @@
 ---
+import Logo from './Logo.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { site } from '../config/site';
 
 const current = Astro.url.pathname;
@@ -7,9 +9,9 @@ const current = Astro.url.pathname;
 <header class="site-header">
   <div class="container site-header__inner">
     <a class="site-header__brand" href="/" aria-label={`${site.name} home`}>
-      <!-- Vector wordmark; switches its letter colour for dark mode inside the SVG. -->
-      <img src="/logo.svg" width="116" height="31" alt="" />
+      <Logo />
     </a>
+    <div class="site-header__end">
     {
       site.nav.length > 0 && (
         <nav aria-label="Main">
@@ -28,6 +30,8 @@ const current = Astro.url.pathname;
         </nav>
       )
     }
+      <ThemeToggle />
+    </div>
   </div>
 </header>
 
@@ -49,13 +53,36 @@ const current = Astro.url.pathname;
 
   .site-header__brand {
     display: inline-flex;
+    color: var(--color-text);
     padding-block: var(--space-1);
   }
 
-  .site-header__brand img {
+  .site-header__brand :global(.logo) {
     display: block;
     width: 7.25rem;
     height: auto;
+  }
+
+  /* Smallest phones: keep logo, nav and theme toggle on one row. */
+  @media (max-width: 22.5rem) {
+    .site-header__inner {
+      column-gap: var(--space-3);
+    }
+
+    .site-header__brand :global(.logo) {
+      width: 6.25rem;
+    }
+
+    .site-header__end,
+    .site-header__nav {
+      column-gap: var(--space-3);
+    }
+  }
+
+  .site-header__end {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
 
   .site-header__nav {

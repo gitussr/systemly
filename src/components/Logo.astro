@@ -1,0 +1,9 @@
+---
+// The wordmark is inlined so its letters take the current text colour (light or dark theme)
+// and it costs no extra request. Source: src/assets/logo.svg (see README).
+import svg from '../assets/logo.svg?raw';
+
+const markup = svg.replace('<svg ', '<svg class="logo" aria-hidden="true" focusable="false" ');
+---
+
+<Fragment set:html={markup} />

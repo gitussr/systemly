@@ -46,7 +46,7 @@ scripts/          # one-off asset scripts
 tests/            # Vitest unit tests
 ```
 
-`public/logo.svg` is the wordmark rebuilt as vector outlines from Lora SemiBold, using the text settings in `logo.psd` (100 px, tracking −20 on "Systeml", −120 on "y."). It matches `logo.png` to within ~1% of pixels but is not cropped, stays sharp at any size, and switches the letter colour for dark mode inside the SVG. `logo.png` and `logo.psd` remain as design sources.
+`src/assets/logo.svg` (inlined by `Logo.astro`) is the wordmark rebuilt as vector outlines from Lora SemiBold, using the text settings in `logo.psd` (100 px, tracking −20 on "Systeml", −120 on "y."). It matches `logo.png` to within ~1% of pixels but is not cropped, stays sharp at any size, and its letters use the current text colour, so it follows the theme. `logo.png` and `logo.psd` remain as design sources.
 
 ## Writing content
 

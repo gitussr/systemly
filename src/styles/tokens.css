@@ -67,21 +67,9 @@
   }
 }
 
-/* Dark theme follows the OS preference. A manual toggle can set data-theme later. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --color-bg: var(--charcoal);
-    --color-surface: #0d1f2b;
-    --color-text: #e6ecef;
-    --color-text-muted: #9aa9b2;
-    --color-border: #1c3240;
-    --color-accent-ink: var(--systemly-green);
-    --color-focus: var(--systemly-green);
-    --color-code-bg: #0b1b25;
-  }
-}
-
+/* Light is the default. Dark applies only when the reader chooses it (data-theme on <html>). */
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --color-bg: var(--charcoal);
   --color-surface: #0d1f2b;
   --color-text: #e6ecef;
