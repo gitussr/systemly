@@ -234,3 +234,15 @@
 .prose .callout--caution {
   --callout-bar: #c0504d;
 }
+
+/* Math (MathML from $…$ and $$…$$). Display formulas scroll sideways on narrow screens. */
+.prose .katex:has(> math[display='block']) {
+  display: block;
+  margin-block: var(--space-4);
+  padding-block: var(--space-2);
+  overflow-x: auto;
+}
+
+.prose math {
+  font-size: 1.1em;
+}

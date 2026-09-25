@@ -2,7 +2,8 @@
  * Fits a chapter's heading outline under the page title without editing the file:
  *
  * 1. A leading `# Title` that repeats the frontmatter title is dropped
- *    (the layout already renders the title as the page's <h1>).
+ *    (the layout already renders the title as the page's <h1>), also when it is
+ *    prefixed with the chapter number, e.g. `# 00.02 — Computer Fundamentals`.
  * 2. If the document still uses `#` headings, every heading moves down one level,
  *    so `#` sections become <h2>, `##` become <h3>, and so on (capped at <h6>).
  *
@@ -18,16 +19,18 @@ import type { VFile } from 'vfile';
 
 export function remarkNormalizeHeadings() {
   return (tree: Root, file: VFile) => {
-    const title = (file.data.astro?.frontmatter as { title?: unknown } | undefined)?.title;
+    const frontmatter = file.data.astro?.frontmatter as { title?: unknown; chapter?: unknown } | undefined;
+    const title = frontmatter?.title;
+    const chapter = frontmatter?.chapter;
 
     const first = tree.children[0];
-    if (
-      first?.type === 'heading' &&
-      first.depth === 1 &&
-      typeof title === 'string' &&
-      normalize(textOf(first)) === normalize(title)
-    ) {
-      tree.children.shift();
+    if (first?.type === 'heading' && first.depth === 1 && typeof title === 'string') {
+      const text = normalize(textOf(first));
+      const withNumber =
+        typeof chapter === 'string' &&
+        text.startsWith(chapter) &&
+        text.slice(chapter.length).replace(/^\s*[—–:.-]?\s*/, '') === normalize(title);
+      if (text === normalize(title) || withNumber) tree.children.shift();
     }
 
     const headings = tree.children.flatMap(function collect(node: RootContent): Heading[] {

@@ -76,6 +76,48 @@ describe('content preservation', () => {
   });
 });
 
+describe('math', () => {
+  it('renders display math as MathML, with no KaTeX HTML or stylesheet', async () => {
+    const out = await html(String.raw`$$
+\text{Memory} \approx a + (b \times c)
+$$`);
+    expect(out).toContain('<math');
+    expect(out).toContain('display="block"');
+    expect(out).toContain('<mtext>Memory</mtext>');
+    expect(out).not.toContain('katex-html');
+    expect(out).not.toContain('$$');
+  });
+
+  it('leaves a lone dollar sign in prose as text', async () => {
+    expect(await html('It costs $5 a month.')).toContain('It costs $5 a month.');
+  });
+});
+
+describe('unsupported components', () => {
+  it('removes a self-closing component tag and reports it', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const out = await html(`Before.
+
+<AsyncImageGroup query={["a","b"]} aspectRatio="5:4" layout="carousel"/>
+
+After.`);
+    expect(out).not.toMatch(/asyncimagegroup/i);
+    expect(out).toContain('<p>Before.</p>');
+    expect(out).toContain('<p>After.</p>');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('<AsyncImageGroup> is not supported'));
+    warn.mockRestore();
+  });
+
+  it('keeps ordinary HTML', async () => {
+    expect(await html(`<details><summary>More</summary>
+
+Text
+
+</details>`)).toContain('<details>');
+    expect(await html('Line<br/>break')).toContain('<br');
+  });
+});
+
 describe('tables', () => {
   it('wraps tables in a focusable scroll region', async () => {
     const out = await html('| a | b |\n|---|---|\n| 1 | 2 |');
@@ -102,6 +144,20 @@ describe('heading normalisation', () => {
     expect(out).toContain('<h3 id="detail">Detail</h3>');
     expect(out).toContain('<h4 id="key-idea">Key idea</h4>');
     expect(out).not.toContain('<h1');
+  });
+
+  it('drops a leading H1 that is the chapter number and the title', async () => {
+    const render2 = async (markdown: string) =>
+      (await renderer.render(markdown, { frontmatter: { title: 'Computer Fundamentals', chapter: '00.02' } })).code;
+    for (const heading of ['00.02 — Computer Fundamentals', '00.02 - Computer Fundamentals', '00.02: Computer Fundamentals', '00.02 Computer Fundamentals']) {
+      expect(await render2(`# ${heading}
+
+## Learning Objective`)).not.toContain('Computer Fundamentals</h');
+    }
+    // A different chapter number is content, not a repeated title.
+    expect(await render2(`# 00.03 — Computer Fundamentals
+
+Text.`)).toContain('00.03 — Computer Fundamentals</h2>');
   });
 
   it('keeps a leading H1 that differs from the title, demoted', async () => {

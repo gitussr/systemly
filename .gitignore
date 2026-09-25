@@ -17,3 +17,6 @@ npm-debug.log*
 .vercel/
 .DS_Store
 Thumbs.db
+
+# Chapter drafts as supplied by the content owner; the integrated copy lives in content/
+/Chapter *.md

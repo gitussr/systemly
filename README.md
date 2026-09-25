@@ -231,7 +231,7 @@ List outgoing links once, in `related`. Each chapter page shows them as **Relate
 
 Write chapters the way that reads best in the file; the renderer fits the outline under the page title:
 
-- A leading `# Title` that repeats the frontmatter title is not rendered twice.
+- A leading `# Title` that repeats the frontmatter title is not rendered twice, also when it starts with the chapter number (`# 00.02 — Computer Fundamentals`).
 - If sections use `#`, every heading moves down one level.
 - Skipped levels (e.g. `#` followed by `###`) are closed, so the page outline stays valid for screen readers.
 
@@ -250,6 +250,14 @@ GitHub alert syntax, so files still read correctly on GitHub:
 Types: `MENTAL-MODEL`, `PROBLEM`, `TRADE-OFF`, `FAILURE`, `EVOLUTION`, `LOCK-IN`, and GitHub's `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, `CAUTION`.
 
 The renderer keeps text exactly as written: it does not convert quotes, `--` or `...` into typographic characters.
+
+### Math
+
+`$inline$` and `$$display$$` LaTeX are rendered at build time as MathML (remark-math + rehype-katex), which browsers draw natively: no math JavaScript, stylesheet or fonts are downloaded. Wide formulas scroll sideways on phones.
+
+### Components from other editors
+
+Self-closing component tags copied from other writing tools (e.g. `<AsyncImageGroup query={[…]} />`) cannot be rendered from Markdown. They are left in the file, skipped when rendering, and reported in the build output, so the content owner can decide what should replace them (for example, an image file).
 
 ### Diagrams
 

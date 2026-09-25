@@ -3,8 +3,11 @@
  * so what the tests render is exactly what the site renders.
  */
 import { unified } from '@astrojs/markdown-remark';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
 import { remarkCallouts } from './callouts';
+import { remarkUnsupportedComponents } from './components';
 import { remarkNormalizeHeadings } from './headings';
 import { rehypeMermaid } from './mermaid';
 import { rehypeTableScroll } from './tables';
@@ -27,7 +30,17 @@ export const markdownProcessor = unified({
   // Content is authored deliberately: do not rewrite quotes, dashes or ellipses.
   smartypants: false,
   remarkPlugins: [
+    [
+      remarkUnsupportedComponents,
+      {
+        onRemove: (name: string, file: { path?: string }) =>
+          console.warn(`[systemly] <${name}> is not supported in Markdown and was not rendered${file.path ? ` (${file.path})` : ''}.`),
+      },
+    ],
     remarkNormalizeHeadings,
+    // $inline$ and $$display$$ math. Rendered at build time as MathML, which browsers draw
+    // natively: no math JavaScript, stylesheet or fonts are sent.
+    remarkMath,
     [
       remarkCallouts,
       {
@@ -36,7 +49,12 @@ export const markdownProcessor = unified({
       },
     ],
   ],
-  rehypePlugins: [rehypeMermaid, rehypeTableScroll, rehypeTaskListLabels],
+  rehypePlugins: [
+    [rehypeKatex, { output: 'mathml', throwOnError: false }],
+    rehypeMermaid,
+    rehypeTableScroll,
+    rehypeTaskListLabels,
+  ],
 });
 
 export const markdownConfig = {
