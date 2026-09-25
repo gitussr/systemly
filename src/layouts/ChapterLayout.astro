@@ -9,6 +9,8 @@ import { isAvailable, type ChapterMeta } from '../lib/content/catalog';
 import { chapterHref } from '../lib/content/rules';
 import type { ChapterData } from '../lib/content/schema';
 import type { DecisionRecord } from '../lib/decisions/collection';
+import { whyNotHref, type ChapterComparison } from '../lib/why-not/compare';
+import type { Comparison } from '../lib/why-not/schema';
 import '../styles/prose.css';
 
 interface Props {
@@ -19,6 +21,8 @@ interface Props {
   connections?: { related: ChapterMeta[]; referencedBy: ChapterMeta[] };
   /** Decision records that link to this chapter. */
   decisions?: DecisionRecord[];
+  /** "Why not?" comparisons in which this chapter is one of the solutions. */
+  comparisons?: ChapterComparison<Comparison>[];
 }
 
 const {
@@ -28,6 +32,7 @@ const {
   next,
   connections = { related: [], referencedBy: [] },
   decisions = [],
+  comparisons = [],
 } = Astro.props;
 const isPlaceholder = data.status === 'placeholder';
 const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
@@ -99,6 +104,27 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
             <section class="chapter-decisions" aria-labelledby="chapter-decisions">
               <h2 id="chapter-decisions">Decisions that use this chapter</h2>
               <DecisionList records={decisions} />
+            </section>
+          )
+        }
+
+        {
+          comparisons.length > 0 && (
+            <section class="chapter-decisions" aria-labelledby="chapter-comparisons">
+              <h2 id="chapter-comparisons">Compared with alternatives</h2>
+              <ul class="chapter-comparisons">
+                {comparisons.map(({ comparison, solution }) => (
+                  <li>
+                    <a class="chapter-comparison" href={whyNotHref(comparison.id)}>
+                      <span class="chapter-comparison__meta">As “{solution}”, for the need</span>
+                      <span class="chapter-comparison__row">
+                        <span class="chapter-comparison__title">{comparison.need}</span>
+                        <StatusTag status={comparison.status} />
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </section>
           )
         }
@@ -360,6 +386,45 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
   .chapter-decisions h2 {
     margin: 0 0 var(--space-4);
     font-size: var(--text-xl);
+  }
+
+  .chapter-comparisons {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .chapter-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .chapter-comparison:hover {
+    border-color: var(--color-accent);
+  }
+
+  .chapter-comparison__meta {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .chapter-comparison__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .chapter-comparison__title {
+    font-weight: 500;
   }
 
   /* Previous / next */

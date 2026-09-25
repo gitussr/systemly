@@ -14,6 +14,7 @@ const sections: NavItem[] = [
   { label: 'Evolution', href: '/evolution', icon: 'sprout' },
   { label: 'Playground', href: '/playground', icon: 'shapes' },
   { label: 'Decisions', href: '/decisions', icon: 'notebook-pen' },
+  { label: 'Why not?', href: '/why-not', icon: 'git-compare' },
 ];
 
 const search: NavItem = { label: 'Search', href: '/search', icon: 'search' };

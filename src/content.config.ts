@@ -6,6 +6,7 @@ import { ruleSchema } from './lib/advisor/schema';
 import { scenarioSchema } from './lib/evolution/schema';
 import { checkTextSchema } from './lib/playground/schema';
 import { decisionSchema } from './lib/decisions/schema';
+import { comparisonSchema } from './lib/why-not/schema';
 
 const chapters = defineCollection({
   loader: glob({
@@ -45,4 +46,10 @@ const decisions = defineCollection({
   schema: decisionSchema,
 });
 
-export const collections = { chapters, decisions, advisorRules, evolution, playgroundChecks };
+/** "Why not?" comparisons: one YAML file per need; the file name is the id and URL. */
+const whyNot = defineCollection({
+  loader: glob({ base: './content/why-not', pattern: '*.yaml' }),
+  schema: comparisonSchema,
+});
+
+export const collections = { chapters, decisions, advisorRules, evolution, playgroundChecks, whyNot };

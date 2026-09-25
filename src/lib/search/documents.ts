@@ -5,6 +5,8 @@ import { chapterHref } from '../content/rules';
 import type { ChapterData } from '../content/schema';
 import { adrLabel, decisionHref } from '../decisions/records';
 import type { DecisionData } from '../decisions/schema';
+import { whyNotHref } from '../why-not/compare';
+import type { Comparison } from '../why-not/schema';
 import type { SearchDocument } from './index';
 import { extractSearchText } from './text';
 
@@ -65,5 +67,29 @@ export function toDecisionSearchDocument(
     connections: data.chapters.map((slug) => chapterTitles.get(slug) ?? '').filter(Boolean).join(' · '),
     body,
     links: data.chapters,
+  };
+}
+
+/**
+ * A "Why not?" comparison, searchable by its need and by every solution's name and text.
+ * It links to the solutions' chapters, so a search for one solution surfaces its alternatives.
+ */
+export function toComparisonSearchDocument(c: Comparison): SearchDocument {
+  const chapters = c.solutions.flatMap((s) => (s.chapter ? [s.chapter] : []));
+  const written = c.status !== 'placeholder';
+  return {
+    id: `why-not:${c.id}`,
+    href: whyNotHref(c.id),
+    title: c.need,
+    levelLabel: 'Why not?',
+    status: c.status,
+    summary: c.summary,
+    aliases: 'why not · alternatives · comparison',
+    tags: '',
+    topics: c.solutions.map((s) => s.name).join(' · '),
+    headings: '',
+    connections: '',
+    body: written ? c.solutions.flatMap((s) => [s.why ?? '', s.whyNot ?? '']).filter(Boolean).join(' ') : '',
+    links: [...new Set(chapters)],
   };
 }

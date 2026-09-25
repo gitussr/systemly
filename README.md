@@ -33,6 +33,7 @@ content/          # canonical Markdown chapters (source of truth)
 ├── evolution/      # Evolution Simulator scenarios, one YAML file each
 ├── playground/checks.yaml  # wording for the Playground's checks
 ├── decisions/      # Architecture Decision Records, one Markdown file each
+├── why-not/        # "Why not?" comparisons, one YAML file per need
 ├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
 docs/
@@ -46,13 +47,14 @@ src/
 │   ├── advisor/  # Advisor inputs, components, rule schema and rules engine
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
 │   ├── decisions/ # decision-record schema, section check, validation, supersedes links
+│   ├── why-not/  # comparison schema, validation, chapter back-links
 │   ├── evolution/ # scenario schema and stage comparison
 │   ├── playground/ # component types, graph model, checks, Mermaid output
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 │   ├── pwa/      # finds the files each page needs offline
 │   └── search/   # index definition, document builder, Markdown-to-text
 ├── service-worker/ # sw.js source (the build prepends the version and file list)
-├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /decisions, /decisions/<slug>, /search, /search-index.json
+├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /decisions, /decisions/<slug>, /why-not, /why-not/<id>, /search, /search-index.json
 ├── scripts/      # browser scripts (search page)
 └── styles/       # tokens, global styles, prose styles
 scripts/          # one-off asset scripts
@@ -63,13 +65,13 @@ tests/            # Vitest unit tests
 
 ## Navigation
 
-Below 64rem (phones and tablets) the section links are a fixed bottom navigation bar in the style of Android's Material 3 navigation bar: Roadmap, Library, Search, Advisor and **More**, which opens a bottom sheet with the other sections. The sheet is a native `popover`, so it needs no JavaScript, and Escape or a tap outside closes it. From 64rem the links are in the header. Both read from `src/config/site.ts`; icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
+Below 64rem (phones and tablets) the section links are a fixed bottom navigation bar in the style of Android's Material 3 navigation bar: Roadmap, Library, Search, Advisor and **More**, which opens a bottom sheet with the other sections. The sheet is a native `popover`, so it needs no JavaScript, and Escape or a tap outside closes it. "Why not?" is in the sheet. From 64rem the links are in the header. Both read from `src/config/site.ts`; icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
 
 ## Installable app and offline reading
 
 Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / "Install app") and reads offline.
 
-- On first visit the service worker saves the home, roadmap, library, search, Advisor, Evolution, Playground, decision-record index and offline pages, the search index, icons, CSS, the Latin font files, and **every approved chapter and decision record** (about 0.5 MB today).
+- On first visit the service worker saves the home, roadmap, library, search, Advisor, Evolution, Playground, decision-record index, Why-not index and offline pages, the search index, icons, CSS, the Latin font files, and **every approved chapter and decision record, and every published comparison** (about 0.5 MB today).
 - Pages are fetched from the network first, so online readers always get the latest text; offline, the saved copy is shown. Pages never opened and not approved show `/offline`.
 - Files loaded on demand (e.g. Mermaid) are saved the first time they are used.
 - Each build writes `dist/sw.js` with a version hash of the worker code and every saved file; a new version replaces the old cache automatically.
@@ -161,6 +163,29 @@ Every written record uses these `##` sections, in order: Context, Problem, Optio
 
 `content/decisions/_samples/` holds two dev-only fixtures (ADR-998 and ADR-999) for checking the pages with `npm run dev`.
 
+## Why not?
+
+`/why-not` compares solutions to one problem (§14): train the reader to start from the need, not the technology. One YAML file per need in `content/why-not/`; the file name is the URL (`/why-not/<file-name>`).
+
+```yaml
+need: Reduce database read load   # the problem, stated as a need
+status: approved                  # approved | draft (default) | placeholder
+order: 1                          # position in the list
+summary: Optional context.
+solutions:                        # at least two, each named once
+  - name: Add index
+    chapter: database-indexes     # optional: the chapter that explains it
+    why: When this solution makes sense.      # "Why this?"
+    whyNot: When it does not, or what it costs.   # "Why not?"
+```
+
+- A **placeholder** may list solutions without `why` / `whyNot`; its page shows the planned solutions, and the build prints `CONTENT REQUIRED`. A **draft** may leave some out (the build warns). An **approved** comparison needs both for every solution.
+- Each solution's chapter lists the comparison under **Compared with alternatives**.
+- Comparisons are searchable by the need and by every solution's name, and every published comparison is saved for offline reading.
+- The build fails on a `chapter` slug that does not exist, or on an unknown field (so a typo like `whynot` is caught).
+
+`content/why-not/reduce-database-read-load.yaml` is a placeholder built from the example in §14: the need and the five solutions, with no explanations yet.
+
 ## Writing content
 
 Chapters are Markdown files under `content/`, one folder per roadmap level. The folder is for organisation only; the URL comes from `slug`, so moving a file never breaks a link.
@@ -194,7 +219,7 @@ The build fails on duplicate slugs, invalid frontmatter, or a `related` slug tha
 
 ### Search
 
-`/search-index.json` is built from every published chapter and decision record, and is downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
+`/search-index.json` is built from every published chapter, decision record and "Why not?" comparison, and is downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
 
 Press `/` anywhere to search.
 

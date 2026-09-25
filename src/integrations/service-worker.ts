@@ -2,7 +2,7 @@
  * Writes dist/sw.js after the build.
  *
  * Precached (saved on install): the app shell pages, the offline page, every approved
- * chapter and decision record, the search index, icons, and the CSS / fonts (Latin subset) / JS those pages
+ * chapter and decision record, every "Why not?" comparison, the search index, icons, and the CSS / fonts (Latin subset) / JS those pages
  * load up front. On-demand chunks such as Mermaid are not precached; the service worker
  * saves them the first time they are used.
  *
@@ -10,7 +10,7 @@
  * content, assets or caching logic installs a new service worker and replaces the old cache.
  */
 import { createHash } from 'node:crypto';
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
@@ -19,7 +19,7 @@ import { chapterHref } from '../lib/content/rules';
 import { decisionHref } from '../lib/decisions/records';
 import { cssLatinFonts, htmlAssetRefs, jsStaticImports } from '../lib/pwa/assets';
 
-const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/decisions', '/offline'];
+const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/decisions', '/why-not', '/offline'];
 const STATIC_FILES = [
   '/search-index.json',
   '/manifest.webmanifest',
@@ -48,7 +48,12 @@ export function serviceWorker(): AstroIntegration {
         const records = (await readDecisionFiles(root))
           .filter((entry) => entry.data.status === 'approved')
           .map((entry) => decisionHref(entry.data.slug));
-        const pages = [...SHELL_PAGES, ...approved, ...records];
+        // Comparisons are small: every built one is saved (approved, and placeholders listing the options).
+        const comparisons = (await readdir(path.join(out, 'why-not'), { withFileTypes: true }).catch(() => []))
+          .filter((d) => d.isDirectory())
+          .map((d) => `/why-not/${d.name}`)
+          .sort();
+        const pages = [...SHELL_PAGES, ...approved, ...records, ...comparisons];
 
         const files = new Set(STATIC_FILES);
         const queue: string[] = [];
@@ -89,7 +94,8 @@ export function serviceWorker(): AstroIntegration {
         logger.info(
           `sw.js ${version}: ${precache.length} files, ${(bytes / 1024).toFixed(0)} KB precached ` +
             `(${approved.length} approved ${approved.length === 1 ? 'chapter' : 'chapters'}, ` +
-            `${records.length} approved decision ${records.length === 1 ? 'record' : 'records'})`,
+            `${records.length} approved decision ${records.length === 1 ? 'record' : 'records'}, ` +
+            `${comparisons.length} ${comparisons.length === 1 ? 'comparison' : 'comparisons'})`,
         );
       },
     },

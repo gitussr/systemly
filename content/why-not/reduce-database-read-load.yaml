@@ -1,0 +1,16 @@
+# The need and the solutions come from MASTER-PROMPT §14. The explanations
+# ("why" and "whyNot" for each solution) are CONTENT REQUIRED from the owner.
+need: Reduce database read load
+status: placeholder
+order: 1
+solutions:
+  - name: Optimize query
+    chapter: query-optimization
+  - name: Add index
+    chapter: database-indexes
+  - name: Read replica
+    chapter: read-replicas
+  - name: Application cache
+    chapter: application-level-caching
+  - name: Redis
+    chapter: redis

@@ -1,0 +1,274 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import { getCurriculum } from '../../lib/content/chapters';
+import { isAvailable } from '../../lib/content/catalog';
+import { chapterHref } from '../../lib/content/rules';
+import { getComparisons } from '../../lib/why-not/collection';
+
+export async function getStaticPaths() {
+  const [comparisons, curriculum] = await Promise.all([getComparisons(), getCurriculum()]);
+  const chapters = new Map(curriculum.map((c) => [c.slug, c]));
+  return comparisons.map((comparison) => ({
+    params: { id: comparison.id },
+    props: {
+      comparison,
+      chapters: comparison.solutions.map((s) => (s.chapter ? chapters.get(s.chapter) : undefined)),
+    },
+  }));
+}
+
+const { comparison, chapters } = Astro.props;
+const isPlaceholder = comparison.status === 'placeholder';
+---
+
+<BaseLayout title={`Why not? ${comparison.need}`} description={comparison.summary ?? `Solutions compared for: ${comparison.need}.`}>
+  <div class="container comparison-page">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/why-not">Why not?</a></li>
+      </ol>
+    </nav>
+
+    <header class="comparison__header">
+      <p class="comparison__label">
+        Need
+        {comparison.status === 'draft' && <span class="comparison__badge">Draft — not published</span>}
+      </p>
+      <h1 class="comparison__title">{comparison.need}</h1>
+      {comparison.summary && <p class="comparison__summary editorial">{comparison.summary}</p>}
+    </header>
+
+    {
+      isPlaceholder && (
+        <p class="comparison__placeholder" role="status">
+          The solutions below are planned. When each one makes sense, and when it does not, is being
+          written and reviewed.
+        </p>
+      )
+    }
+
+    <h2 class="comparison__heading" id="solutions">
+      {comparison.solutions.length} possible solutions
+    </h2>
+    <ol class="solutions">
+      {
+        comparison.solutions.map((s, i) => {
+          const chapter = chapters[i];
+          return (
+            <li class="solution">
+              <div class="solution__header">
+                <span class="solution__number" aria-hidden="true">{i + 1}</span>
+                <h3 class="solution__name">{s.name}</h3>
+                {chapter && (
+                  <a class="solution__chapter" href={chapterHref(chapter.slug)}>
+                    <span class:list={{ 'is-muted': !isAvailable(chapter) }}>
+                      {chapter.chapter && <span class="solution__chapter-number">{chapter.chapter}</span>}
+                      {chapter.title}
+                    </span>
+                    <StatusTag status={chapter.status} />
+                  </a>
+                )}
+              </div>
+              {!isPlaceholder && (
+                <dl class="solution__answers">
+                  <div class="answer answer--why">
+                    <dt>Why this?</dt>
+                    <dd class:list={{ 'is-missing': !s.why }}>{s.why ?? 'Not written yet.'}</dd>
+                  </div>
+                  <div class="answer answer--why-not">
+                    <dt>Why not?</dt>
+                    <dd class:list={{ 'is-missing': !s.whyNot }}>{s.whyNot ?? 'Not written yet.'}</dd>
+                  </div>
+                </dl>
+              )}
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</BaseLayout>
+
+<style>
+  .comparison-page {
+    padding-block: var(--space-6) var(--space-12);
+  }
+
+  .breadcrumb ol {
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .breadcrumb a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .comparison__header,
+  .comparison__placeholder,
+  .comparison__heading,
+  .solutions {
+    max-width: var(--measure);
+  }
+
+  .comparison__header {
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .comparison__label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2);
+    color: var(--color-accent-ink);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .comparison__badge {
+    padding-inline: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  .comparison__title {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .comparison__summary {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    color: var(--color-text-muted);
+  }
+
+  .comparison__placeholder {
+    margin: 0 0 var(--space-8);
+    padding: var(--space-4) var(--space-6);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .comparison__heading {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .solutions {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .solution {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .solution__header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .solution__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    align-self: center;
+  }
+
+  .solution__name {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .solution__chapter {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .solution__chapter:hover > span:first-child {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .solution__chapter-number {
+    margin-right: var(--space-2);
+    font-family: var(--font-mono);
+  }
+
+  .solution__answers {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+  }
+
+  @media (min-width: 40rem) {
+    .solution__answers {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .answer {
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-bg);
+  }
+
+  .answer--why-not {
+    border-left-color: var(--color-text-muted);
+  }
+
+  .answer dt {
+    margin-bottom: var(--space-1);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .answer dd {
+    margin: 0;
+  }
+
+  .answer dd.is-missing {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+</style>

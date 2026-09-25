@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import { isAvailable } from '../../lib/content/catalog';
+import { SHOW_DRAFTS } from '../../lib/content/env';
+import { getComparisons } from '../../lib/why-not/collection';
+import { missingExplanations, whyNotHref } from '../../lib/why-not/compare';
+
+const comparisons = await getComparisons();
+
+for (const c of comparisons) {
+  if (c.status === 'placeholder') console.info(`CONTENT REQUIRED: Why not? — ${c.need} (content/why-not/${c.id}.yaml)`);
+  else if (c.status === 'draft') {
+    const missing = missingExplanations(c);
+    if (missing.length > 0) console.warn(`[why-not] Draft "${c.need}": no why/whyNot yet for ${missing.join(', ')}`);
+  }
+}
+console.info(
+  `[why-not] ${comparisons.length} ${comparisons.length === 1 ? 'comparison' : 'comparisons'} published` +
+    (SHOW_DRAFTS ? ' (drafts shown for review)' : ''),
+);
+---
+
+<BaseLayout
+  title="Why not?"
+  description="One need, several possible solutions: when each one makes sense, and when it does not."
+>
+  <div class="container why-not">
+    <header class="page-header">
+      <h1>Why not?</h1>
+      <p class="page-header__lede">
+        Start from the problem, not the technology. Each page takes one need and compares the
+        solutions that could meet it: why you would choose each one, and why you would not.
+      </p>
+    </header>
+
+    {
+      comparisons.length === 0 ? (
+        <p class="why-not__empty">Comparisons are being written and reviewed. They will appear here once approved.</p>
+      ) : (
+        <ul class="needs">
+          {comparisons.map((c) => (
+            <li>
+              <a class="need" href={whyNotHref(c.id)}>
+                <span class="need__label">Need</span>
+                <span class="need__row">
+                  <span class:list={['need__title', { 'is-muted': !isAvailable(c) }]}>{c.need}</span>
+                  <StatusTag status={c.status} />
+                </span>
+                {c.summary && <span class="need__summary">{c.summary}</span>}
+                <span class="need__solutions">
+                  <span class="visually-hidden">Solutions compared: </span>
+                  {c.solutions.map((s) => s.name).join(' · ')}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .why-not {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .page-header {
+    max-width: var(--measure);
+    margin-bottom: var(--space-8);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .page-header__lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .needs {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--measure);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .need {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .need:hover {
+    border-color: var(--color-accent);
+  }
+
+  .need__label {
+    color: var(--color-accent-ink);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .need__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .need__title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  .need__title.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  .need__summary,
+  .need__solutions {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .why-not__empty {
+    max-width: var(--measure);
+    padding: var(--space-6);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+</style>
