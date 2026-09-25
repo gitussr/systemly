@@ -55,6 +55,8 @@
   --gutter: 1rem;
   --measure: 68ch;
   --page-max: 72rem;
+  /* Material 3 navigation bar height; the bar is shown below 64rem. */
+  --bottom-nav-height: 5rem;
 
   --radius-sm: 4px;
   --radius-md: 8px;

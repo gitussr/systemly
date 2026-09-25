@@ -110,6 +110,8 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   }
 
   .level-jump ol {
+    /* Contains the visually hidden "Level" labels, so they scroll with the list instead of widening the page. */
+    position: relative;
     display: flex;
     gap: var(--space-1);
     margin: 0;

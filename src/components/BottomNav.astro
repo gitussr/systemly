@@ -1,0 +1,278 @@
+---
+/**
+ * Phones and tablets: a fixed bottom navigation bar in the style of Android's Material 3
+ * navigation bar. Four destinations and "More", which opens a bottom sheet with the rest.
+ * The sheet is a native popover: no JavaScript, and Escape or a tap outside closes it.
+ */
+import Icon from './Icon.astro';
+import { isCurrent, site } from '../config/site';
+
+const current = Astro.url.pathname;
+const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
+---
+
+<nav class="bottom-nav" aria-label="Main">
+  <ul class="bottom-nav__bar">
+    {
+      site.bar.map((item) => (
+        <li>
+          <a
+            class="bottom-nav__item"
+            href={item.href}
+            aria-current={isCurrent(current, item.href) ? 'page' : undefined}
+          >
+            <span class="bottom-nav__indicator">
+              <Icon name={item.icon} />
+            </span>
+            <span class="bottom-nav__label">{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
+    <li>
+      <button
+        class="bottom-nav__item"
+        type="button"
+        popovertarget="more-sheet"
+        aria-haspopup="true"
+        data-current={moreIsCurrent ? 'true' : undefined}
+      >
+        <span class="bottom-nav__indicator">
+          <Icon name="ellipsis" />
+        </span>
+        <span class="bottom-nav__label">More</span>
+      </button>
+    </li>
+  </ul>
+</nav>
+
+<div id="more-sheet" class="more-sheet" popover aria-labelledby="more-sheet-title">
+  <div class="more-sheet__header">
+    <p class="more-sheet__title" id="more-sheet-title">More</p>
+    <button
+      class="more-sheet__close"
+      type="button"
+      popovertarget="more-sheet"
+      popovertargetaction="hide"
+      aria-label="Close"
+    >
+      <Icon name="x" />
+    </button>
+  </div>
+  <ul class="more-sheet__list">
+    {
+      site.more.map((item) => (
+        <li>
+          <a
+            class="more-sheet__item"
+            href={item.href}
+            aria-current={isCurrent(current, item.href) ? 'page' : undefined}
+          >
+            <Icon name={item.icon} />
+            <span>{item.label}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  /* Shown below 64rem; wide screens use the header links instead. */
+  .bottom-nav {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 20;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+  }
+
+  @media (min-width: 64rem) {
+    .bottom-nav,
+    .more-sheet {
+      display: none;
+    }
+  }
+
+  .bottom-nav__bar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    max-width: 40rem;
+    height: var(--bottom-nav-height);
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The pill behind the icon: the Material 3 active indicator. */
+  .bottom-nav__indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 2rem;
+    border-radius: 999px;
+    transition: background-color 150ms ease;
+  }
+
+  .bottom-nav__indicator :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1rem;
+    letter-spacing: 0.01em;
+  }
+
+  .bottom-nav__item:hover .bottom-nav__indicator {
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  }
+
+  .bottom-nav__item[aria-current='page'],
+  .bottom-nav__item[data-current] {
+    color: var(--color-text);
+  }
+
+  .bottom-nav__item[aria-current='page'] .bottom-nav__label,
+  .bottom-nav__item[data-current] .bottom-nav__label {
+    font-weight: 700;
+  }
+
+  .bottom-nav__item[aria-current='page'] .bottom-nav__indicator,
+  .bottom-nav__item[data-current] .bottom-nav__indicator {
+    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+
+  .bottom-nav__item:focus-visible {
+    outline: none;
+  }
+
+  .bottom-nav__item:focus-visible .bottom-nav__indicator {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* "More" bottom sheet */
+  .more-sheet {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--space-2) var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 1.75rem 1.75rem 0 0;
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 -4px 24px rgb(0 0 0 / 0.16);
+  }
+
+  .more-sheet::backdrop {
+    background: rgb(0 0 0 / 0.32);
+  }
+
+  /* Drag-handle bar, as on Android sheets. */
+  .more-sheet::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 0.25rem;
+    margin: var(--space-2) auto var(--space-3);
+    border-radius: 999px;
+    background: var(--color-border);
+  }
+
+  .more-sheet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: var(--space-2);
+  }
+
+  .more-sheet__title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .more-sheet__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-right: calc(var(--space-2) * -1);
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .more-sheet__close:hover {
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+    color: var(--color-text);
+  }
+
+  .more-sheet__close :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .more-sheet__list {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .more-sheet__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 3.5rem;
+    padding-inline: var(--space-4);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .more-sheet__item :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-text-muted);
+  }
+
+  .more-sheet__item:hover {
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  }
+
+  .more-sheet__item[aria-current='page'] {
+    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+
+  .more-sheet__item[aria-current='page'] :global(.icon) {
+    color: var(--color-text);
+  }
+</style>

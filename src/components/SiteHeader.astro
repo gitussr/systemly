@@ -1,7 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import ThemeToggle from './ThemeToggle.astro';
-import { site } from '../config/site';
+import { isCurrent, site } from '../config/site';
 
 const current = Astro.url.pathname;
 ---
@@ -20,7 +20,7 @@ const current = Astro.url.pathname;
               <li>
                 <a
                   href={item.href}
-                  aria-current={current.startsWith(item.href) ? 'page' : undefined}
+                  aria-current={isCurrent(current, item.href) ? 'page' : undefined}
                 >
                   {item.label}
                 </a>
@@ -33,11 +33,11 @@ const current = Astro.url.pathname;
 
     <div class="site-header__tools">
       <a
-        class="header-icon"
+        class="header-icon header-icon--search"
         href="/search"
         aria-label="Search"
         aria-keyshortcuts="/"
-        aria-current={current.startsWith('/search') ? 'page' : undefined}
+        aria-current={isCurrent(current, '/search') ? 'page' : undefined}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <circle cx="11" cy="11" r="7"></circle>
@@ -74,20 +74,19 @@ const current = Astro.url.pathname;
   }
 
   /*
-   * Phones and small tablets: logo and tools on the first row, section links as a
-   * second row that scrolls sideways like tabs. From 48rem: one row — logo, links, tools.
+   * Below 64rem the section links live in the bottom navigation bar (BottomNav), so the
+   * header is one row: logo and tools. From 64rem: logo, links, tools.
    */
   .site-header__inner {
     display: grid;
     grid-template-columns: auto 1fr;
-    grid-template-areas:
-      'brand tools'
-      'nav nav';
+    grid-template-areas: 'brand tools';
     align-items: center;
-    padding-block: var(--space-2) 0;
+    min-height: 3.5rem;
+    padding-block: var(--space-1);
   }
 
-  @media (min-width: 48rem) {
+  @media (min-width: 64rem) {
     .site-header__inner {
       grid-template-columns: auto 1fr auto;
       grid-template-areas: 'brand nav tools';
@@ -119,33 +118,20 @@ const current = Astro.url.pathname;
   }
 
   .site-header__nav {
-    grid-area: nav;
-    margin-inline: calc(var(--gutter) * -1);
-    padding-inline: var(--gutter);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .site-header__nav::-webkit-scrollbar {
     display: none;
+    grid-area: nav;
+    justify-self: end;
   }
 
-  @media (min-width: 48rem) {
+  @media (min-width: 64rem) {
     .site-header__nav {
-      justify-self: end;
-      margin-inline: 0;
-      padding-inline: 0;
-      overflow: visible;
-    }
-
-    .site-header__nav ul {
-      gap: var(--space-6);
+      display: block;
     }
   }
 
   .site-header__nav ul {
     display: flex;
-    gap: var(--space-5);
+    gap: var(--space-6);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -179,6 +165,17 @@ const current = Astro.url.pathname;
     height: 2.75rem;
     border-radius: var(--radius-md);
     color: var(--color-text-muted);
+  }
+
+  /* Below 64rem the bottom bar has Search. */
+  .header-icon--search {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .header-icon--search {
+      display: inline-flex;
+    }
   }
 
   .header-icon:hover,

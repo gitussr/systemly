@@ -30,6 +30,13 @@ main {
   flex: 1;
 }
 
+/* Keep the end of every page clear of the fixed bottom navigation bar. */
+@media (max-width: 63.999rem) {
+  body {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+}
+
 h1,
 h2,
 h3,

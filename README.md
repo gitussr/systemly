@@ -61,6 +61,10 @@ tests/            # Vitest unit tests
 
 `src/assets/logo.svg` (inlined by `Logo.astro`) is the wordmark rebuilt as vector outlines from Lora SemiBold, using the text settings in `logo.psd` (100 px, tracking −20 on "Systeml", −120 on "y."). It matches `logo.png` to within ~1% of pixels but is not cropped, stays sharp at any size, and its letters use the current text colour, so it follows the theme. `logo.png` and `logo.psd` remain as design sources.
 
+## Navigation
+
+Below 64rem (phones and tablets) the section links are a fixed bottom navigation bar in the style of Android's Material 3 navigation bar: Roadmap, Library, Search, Advisor and **More**, which opens a bottom sheet with the other sections. The sheet is a native `popover`, so it needs no JavaScript, and Escape or a tap outside closes it. From 64rem the links are in the header. Both read from `src/config/site.ts`; icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
+
 ## Installable app and offline reading
 
 Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / "Install app") and reads offline.

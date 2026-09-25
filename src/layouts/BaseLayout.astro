@@ -5,6 +5,7 @@ import '@fontsource-variable/google-sans';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import BottomNav from '../components/BottomNav.astro';
 import { site } from '../config/site';
 
 interface Props {
@@ -20,7 +21,7 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
 <html lang={site.lang}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f8f8f8" />
@@ -46,6 +47,7 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
       <slot />
     </main>
     <SiteFooter />
+    <BottomNav />
     {
       import.meta.env.PROD && (
         <script is:inline>
