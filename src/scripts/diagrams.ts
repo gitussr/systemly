@@ -9,8 +9,8 @@
 import type { Mermaid, MermaidConfig } from 'mermaid';
 
 const SELECTOR = 'figure[data-diagram="mermaid"]';
-/** Smallest scale a diagram is drawn at before it scrolls (≈10px labels at the 15px base). */
-const MIN_SCALE = 0.65;
+/** Smallest scale a diagram is drawn at before it scrolls (≈9px labels at the 15px base). */
+const MIN_SCALE = 0.6;
 let renderCount = 0;
 let mermaidPromise: Promise<Mermaid> | undefined;
 let configuredFor: string | undefined;
@@ -117,6 +117,11 @@ function config(): MermaidConfig {
     securityLevel: 'strict',
     theme: 'base',
     fontFamily: font,
+    // Boxes fit their labels (Mermaid 12 defaults every box to at least 120px), with compact
+    // spacing, so a row of three boxes still fits a phone screen.
+    flowchart: { minNodeWidth: 0, nodeSpacing: 18, rankSpacing: 32, padding: 8, wrappingWidth: 130 },
+    // Narrower participants and no repeated participant row at the bottom.
+    sequence: { width: 96, actorMargin: 16, boxMargin: 6, messageMargin: 28, mirrorActors: false, diagramMarginX: 8 },
     themeVariables: {
       darkMode: dark,
       fontFamily: font,
