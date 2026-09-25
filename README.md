@@ -32,6 +32,7 @@ content/          # canonical Markdown chapters (source of truth)
 ├── advisor/rules/  # Architecture Advisor rules, one YAML file each
 ├── evolution/      # Evolution Simulator scenarios, one YAML file each
 ├── playground/checks.yaml  # wording for the Playground's checks
+├── decisions/      # Architecture Decision Records, one Markdown file each
 ├── 00-foundations/ … 12-case-studies/   # one folder per roadmap level
 └── _samples/     # dev-only rendering fixtures, never published
 docs/
@@ -44,13 +45,14 @@ src/
 ├── lib/
 │   ├── advisor/  # Advisor inputs, components, rule schema and rules engine
 │   ├── content/  # schema, publishing rules, catalog, related-topics graph, curriculum-map parser
+│   ├── decisions/ # decision-record schema, section check, validation, supersedes links
 │   ├── evolution/ # scenario schema and stage comparison
 │   ├── playground/ # component types, graph model, checks, Mermaid output
 │   ├── markdown/ # Markdown pipeline and plugins (headings, callouts, tables, task lists)
 │   ├── pwa/      # finds the files each page needs offline
 │   └── search/   # index definition, document builder, Markdown-to-text
 ├── service-worker/ # sw.js source (the build prepends the version and file list)
-├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /search, /search-index.json
+├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /decisions, /decisions/<slug>, /search, /search-index.json
 ├── scripts/      # browser scripts (search page)
 └── styles/       # tokens, global styles, prose styles
 scripts/          # one-off asset scripts
@@ -63,7 +65,7 @@ tests/            # Vitest unit tests
 
 Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / "Install app") and reads offline.
 
-- On first visit the service worker saves the home, roadmap, library, search and offline pages, the search index, icons, CSS, the Latin font files, and **every approved chapter** (about 0.5 MB today).
+- On first visit the service worker saves the home, roadmap, library, search, Advisor, Evolution, Playground, decision-record index and offline pages, the search index, icons, CSS, the Latin font files, and **every approved chapter and decision record** (about 0.5 MB today).
 - Pages are fetched from the network first, so online readers always get the latest text; offline, the saved copy is shown. Pages never opened and not approved show `/offline`.
 - Files loaded on demand (e.g. Mermaid) are saved the first time they are used.
 - Each build writes `dist/sw.js` with a version hash of the worker code and every saved file; a new version replaces the old cache automatically.
@@ -127,6 +129,34 @@ Checks run on every change (`src/lib/playground/checks.ts`). Their wording lives
 
 Presets follow §7 (V1–V4). The whole design is stored in the URL fragment, so "Copy link" shares it and nothing is sent to a server.
 
+## Decision records
+
+`/decisions` lists Architecture Decision Records (§13): one Markdown file each under `content/decisions/`. They are a separate collection, not chapters. Records use the same publishing statuses as chapters, and the same Markdown features (callouts, tables, diagrams).
+
+```yaml
+---
+number: 4                    # required, never reused → shown as "ADR-004"
+title: Introduce Redis       # the decision, without the "ADR-004:" prefix
+slug: introduce-redis        # required, kebab-case, unique → /decisions/introduce-redis
+status: approved             # approved | draft (default) | placeholder
+outcome: accepted            # proposed | accepted (default) | rejected | deprecated
+supersedes: [2]              # earlier records this one replaces
+chapters: [redis, caching]   # chapters the decision relies on
+summary: One sentence: what was decided.
+tags: [caching]
+date: 2026-09-25
+---
+```
+
+Every written record uses these `##` sections, in order: Context, Problem, Options, Decision, Reasoning, Consequences, Failure Considerations, Reversal Plan. Other headings may sit between them. An approved record that is missing a section, or has them out of order, fails the build; a draft prints a warning.
+
+- **Superseded** is never written by hand. A record shows as superseded once an *accepted* later record lists it in `supersedes`, and both pages link to each other.
+- Each chapter in `chapters` lists the record under **Decisions that use this chapter**.
+- Records are searchable (also by "ADR-004"), and approved ones are saved for offline reading.
+- The build fails on a reused number or slug, a `chapters` slug that does not exist, or a `supersedes` number that is unpublished, the record itself, or a later record. Placeholder records print `CONTENT REQUIRED`.
+
+`content/decisions/_samples/` holds two dev-only fixtures (ADR-998 and ADR-999) for checking the pages with `npm run dev`.
+
 ## Writing content
 
 Chapters are Markdown files under `content/`, one folder per roadmap level. The folder is for organisation only; the URL comes from `slug`, so moving a file never breaks a link.
@@ -160,7 +190,7 @@ The build fails on duplicate slugs, invalid frontmatter, or a `related` slug tha
 
 ### Search
 
-`/search-index.json` is built from every published chapter and downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
+`/search-index.json` is built from every published chapter and decision record, and is downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
 
 Press `/` anywhere to search.
 

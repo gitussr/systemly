@@ -2,12 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Search" description="Search every Systemly chapter.">
+<BaseLayout title="Search" description="Search every Systemly chapter and decision record.">
   <div class="container search-page">
     <h1>Search</h1>
 
     <form class="search-form" role="search" action="/search" method="get">
-      <label class="visually-hidden" for="search-input">Search chapters</label>
+      <label class="visually-hidden" for="search-input">Search chapters and decision records</label>
       <svg class="search-form__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <circle cx="11" cy="11" r="7"></circle>
         <path d="m20 20-3.5-3.5"></path>
@@ -17,7 +17,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         class="search-form__input"
         type="search"
         name="q"
-        placeholder="Search chapters, e.g. load balancer"
+        placeholder="Search chapters and decisions, e.g. load balancer"
         autocomplete="off"
         spellcheck="false"
         enterkeyhint="search"

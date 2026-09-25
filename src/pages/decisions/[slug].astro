@@ -1,0 +1,205 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DecisionList from '../../components/DecisionList.astro';
+import RelatedTopics from '../../components/RelatedTopics.astro';
+import { getCurriculum } from '../../lib/content/chapters';
+import { getDecisionCatalog } from '../../lib/decisions/collection';
+import { OUTCOME_LABELS, adrLabel, decisionHref } from '../../lib/decisions/records';
+import '../../styles/prose.css';
+
+export async function getStaticPaths() {
+  const [{ entries, records, links }, curriculum] = await Promise.all([getDecisionCatalog(), getCurriculum()]);
+  const chapters = new Map(curriculum.map((c) => [c.slug, c]));
+  return entries.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: {
+      entry,
+      record: records[i]!,
+      links: links.get(entry.data.slug)!,
+      chapters: entry.data.chapters.map((slug) => chapters.get(slug)!),
+    },
+  }));
+}
+
+const { entry, record, links, chapters } = Astro.props;
+const { Content } = await render(entry);
+const label = adrLabel(record.number);
+const isPlaceholder = record.status === 'placeholder';
+// An accepted later record replaces this one; a proposed one may.
+const superseded = record.displayOutcome === 'superseded';
+const replacement = links.supersededBy.find((r) => r.outcome === (superseded ? 'accepted' : 'proposed'));
+---
+
+<BaseLayout title={`${label}: ${record.title}`} description={record.summary}>
+  <div class="container record-page">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/decisions">Decision records</a></li>
+      </ol>
+    </nav>
+
+    <article class="record">
+      <header class="record__header">
+        <p class="record__meta">
+          <span class="record__number">{label}</span>
+          <span class="outcome" data-outcome={record.displayOutcome}>{OUTCOME_LABELS[record.displayOutcome]}</span>
+          {
+            record.date && (
+              <time datetime={record.date.toISOString().slice(0, 10)}>
+                {record.date.toLocaleDateString('en', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
+              </time>
+            )
+          }
+          {record.status === 'draft' && <span class="record__badge">Draft — not published</span>}
+        </p>
+        <h1 class="record__title">{record.title}</h1>
+        {record.summary && <p class="record__summary editorial">{record.summary}</p>}
+        {
+          replacement && (
+            <p class="record__notice" role="note">
+              {superseded ? 'Superseded by' : 'A later record proposes replacing this one:'}{' '}
+              <a href={decisionHref(replacement.slug)}>
+                {adrLabel(replacement.number)}: {replacement.title}
+              </a>
+            </p>
+          )
+        }
+      </header>
+
+      {
+        isPlaceholder ? (
+          <div class="record__placeholder" role="status">
+            <p>This decision record is being written and reviewed. It will appear here once approved.</p>
+          </div>
+        ) : (
+          <div class="prose">
+            <Content />
+          </div>
+        )
+      }
+
+      {
+        links.supersedes.length > 0 && (
+          <section class="record__links" aria-labelledby="record-supersedes">
+            <h2 id="record-supersedes">Replaces</h2>
+            <DecisionList records={links.supersedes} />
+          </section>
+        )
+      }
+      {
+        links.supersededBy.length > 0 && (
+          <section class="record__links" aria-labelledby="record-superseded-by">
+            <h2 id="record-superseded-by">Later records</h2>
+            <DecisionList records={links.supersededBy} />
+          </section>
+        )
+      }
+
+      <RelatedTopics related={chapters} referencedBy={[]} relatedTitle="Chapters behind this decision" />
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  // Loads the diagram renderer (and Mermaid) only when this record contains a diagram.
+  if (document.querySelector('figure[data-diagram]')) {
+    void import('../../scripts/diagrams').then(({ renderDiagrams }) => renderDiagrams());
+  }
+</script>
+
+<style>
+  .record-page {
+    padding-block: var(--space-6) var(--space-12);
+  }
+
+  .breadcrumb ol {
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-sm);
+  }
+
+  .breadcrumb a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .record__header,
+  .record__placeholder,
+  .record__links {
+    max-width: var(--measure);
+  }
+
+  .record__header {
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .record__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .record__number {
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
+  }
+
+  .record__badge {
+    padding-inline: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .record__title {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .record__summary {
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-xl);
+    line-height: 1.45;
+    color: var(--color-text-muted);
+  }
+
+  .record__notice {
+    margin: var(--space-4) 0 0;
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid var(--color-accent);
+    background: var(--color-surface);
+    font-size: var(--text-sm);
+  }
+
+  .record__placeholder {
+    padding: var(--space-6);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .record__placeholder p {
+    margin: 0;
+  }
+
+  .record__links {
+    margin-top: var(--space-12);
+  }
+
+  .record__links h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
+  }
+</style>

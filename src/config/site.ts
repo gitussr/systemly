@@ -15,5 +15,6 @@ export const site = {
     { label: 'Advisor', href: '/advisor' },
     { label: 'Evolution', href: '/evolution' },
     { label: 'Playground', href: '/playground' },
+    { label: 'Decisions', href: '/decisions' },
   ] as NavItem[],
 };

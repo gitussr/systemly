@@ -1,15 +1,16 @@
 import { defineCollection } from 'astro:content';
 import { file, glob } from 'astro/loaders';
 import { chapterSchema } from './lib/content/schema';
-import { DEV_ONLY_GLOB } from './lib/content/rules';
+import { DECISIONS_GLOB, DEV_ONLY_GLOB } from './lib/content/rules';
 import { ruleSchema } from './lib/advisor/schema';
 import { scenarioSchema } from './lib/evolution/schema';
 import { checkTextSchema } from './lib/playground/schema';
+import { decisionSchema } from './lib/decisions/schema';
 
 const chapters = defineCollection({
   loader: glob({
     base: './content',
-    pattern: import.meta.env.DEV ? '**/*.md' : ['**/*.md', DEV_ONLY_GLOB],
+    pattern: import.meta.env.DEV ? ['**/*.md', DECISIONS_GLOB] : ['**/*.md', DECISIONS_GLOB, DEV_ONLY_GLOB],
     // The frontmatter slug is the entry id, so moving a file between folders never changes its URL.
     generateId: ({ entry, data }) => (typeof data.slug === 'string' ? data.slug : entry),
   }),
@@ -34,4 +35,14 @@ const playgroundChecks = defineCollection({
   schema: checkTextSchema,
 });
 
-export const collections = { chapters, advisorRules, evolution, playgroundChecks };
+/** Architecture Decision Records: one Markdown file each; the frontmatter slug is the entry id. */
+const decisions = defineCollection({
+  loader: glob({
+    base: './content/decisions',
+    pattern: import.meta.env.DEV ? '**/*.md' : ['**/*.md', DEV_ONLY_GLOB],
+    generateId: ({ entry, data }) => (typeof data.slug === 'string' ? data.slug : entry),
+  }),
+  schema: decisionSchema,
+});
+
+export const collections = { chapters, decisions, advisorRules, evolution, playgroundChecks };

@@ -64,3 +64,11 @@ export const DEV_ONLY_GLOB = '!**/_*/**';
 export function isDevOnlyPath(relativePath: string): boolean {
   return relativePath.replaceAll('\\', '/').split('/').slice(0, -1).some((part) => part.startsWith('_'));
 }
+
+/** Decision records live in content/decisions/ and are their own collection, not chapters. */
+export const DECISIONS_DIR = 'decisions';
+export const DECISIONS_GLOB = `!${DECISIONS_DIR}/**`;
+
+export function isDecisionPath(relativePath: string): boolean {
+  return relativePath.replaceAll('\\', '/').split('/')[0] === DECISIONS_DIR;
+}

@@ -59,8 +59,8 @@ export function initSearch(): void {
     const { hits, related } = search(index, query);
     status.textContent =
       hits.length === 0
-        ? `No chapters match “${query.trim()}”. Try a broader term, or browse the roadmap.`
-        : `${hits.length} ${hits.length === 1 ? 'chapter' : 'chapters'} for “${query.trim()}”`;
+        ? `Nothing matches “${query.trim()}”. Try a broader term, or browse the roadmap.`
+        : `${hits.length} ${hits.length === 1 ? 'result' : 'results'} for “${query.trim()}”`;
 
     const sections: HTMLElement[] = [];
     if (hits.length > 0) sections.push(list(hits.map((h) => resultItem(h))));
@@ -139,7 +139,7 @@ function list(items: HTMLElement[]): HTMLOListElement {
 function resultItem(doc: StoredFields, via?: string): HTMLAnchorElement {
   const a = document.createElement('a');
   a.className = 'result';
-  a.href = `/learn/${doc.id}`;
+  a.href = doc.href;
 
   const meta = document.createElement('span');
   meta.className = 'result__meta';

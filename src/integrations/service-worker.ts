@@ -2,7 +2,7 @@
  * Writes dist/sw.js after the build.
  *
  * Precached (saved on install): the app shell pages, the offline page, every approved
- * chapter, the search index, icons, and the CSS / fonts (Latin subset) / JS those pages
+ * chapter and decision record, the search index, icons, and the CSS / fonts (Latin subset) / JS those pages
  * load up front. On-demand chunks such as Mermaid are not precached; the service worker
  * saves them the first time they are used.
  *
@@ -14,11 +14,12 @@ import { readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
-import { readContentFiles } from './content-files';
+import { readContentFiles, readDecisionFiles } from './content-files';
 import { chapterHref } from '../lib/content/rules';
+import { decisionHref } from '../lib/decisions/records';
 import { cssLatinFonts, htmlAssetRefs, jsStaticImports } from '../lib/pwa/assets';
 
-const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/offline'];
+const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/decisions', '/offline'];
 const STATIC_FILES = [
   '/search-index.json',
   '/manifest.webmanifest',
@@ -44,7 +45,10 @@ export function serviceWorker(): AstroIntegration {
         const approved = (await readContentFiles(root))
           .filter((entry) => entry.data.status === 'approved')
           .map((entry) => chapterHref(entry.data.slug));
-        const pages = [...SHELL_PAGES, ...approved];
+        const records = (await readDecisionFiles(root))
+          .filter((entry) => entry.data.status === 'approved')
+          .map((entry) => decisionHref(entry.data.slug));
+        const pages = [...SHELL_PAGES, ...approved, ...records];
 
         const files = new Set(STATIC_FILES);
         const queue: string[] = [];
@@ -84,7 +88,8 @@ export function serviceWorker(): AstroIntegration {
 
         logger.info(
           `sw.js ${version}: ${precache.length} files, ${(bytes / 1024).toFixed(0)} KB precached ` +
-            `(${approved.length} approved ${approved.length === 1 ? 'chapter' : 'chapters'})`,
+            `(${approved.length} approved ${approved.length === 1 ? 'chapter' : 'chapters'}, ` +
+            `${records.length} approved decision ${records.length === 1 ? 'record' : 'records'})`,
         );
       },
     },

@@ -1,0 +1,102 @@
+---
+import StatusTag from './StatusTag.astro';
+import { isAvailable } from '../lib/content/catalog';
+import {
+  OUTCOME_LABELS,
+  adrLabel,
+  decisionHref,
+  type DecisionMeta,
+  type DisplayOutcome,
+} from '../lib/decisions/records';
+
+interface Props {
+  records: (DecisionMeta & { displayOutcome: DisplayOutcome })[];
+  /** Show each record's summary (the index page); link lists elsewhere stay compact. */
+  summaries?: boolean;
+}
+
+const { records, summaries = false } = Astro.props;
+---
+
+<ul class="decisions">
+  {
+    records.map((r) => (
+      <li>
+        <a class="decision" href={decisionHref(r.slug)}>
+          <span class="decision__meta">
+            <span class="decision__number">{adrLabel(r.number)}</span>
+            <span class="outcome" data-outcome={r.displayOutcome}>
+              {OUTCOME_LABELS[r.displayOutcome]}
+            </span>
+          </span>
+          <span class="decision__row">
+            <span class:list={['decision__title', { 'is-muted': !isAvailable(r) }]}>{r.title}</span>
+            <StatusTag status={r.status} />
+          </span>
+          {summaries && r.summary && <span class="decision__summary">{r.summary}</span>}
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .decisions {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .decision {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    height: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .decision:hover {
+    border-color: var(--color-accent);
+  }
+
+  .decision__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .decision__number {
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
+  }
+
+  .decision__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-2);
+  }
+
+  .decision__title {
+    font-weight: 500;
+  }
+
+  .decision__title.is-muted {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .decision__summary {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+</style>

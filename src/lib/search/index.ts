@@ -5,10 +5,13 @@
 import MiniSearch, { type Options, type SearchResult } from 'minisearch';
 
 export interface SearchDocument {
-  id: string; // slug
+  id: string; // chapter slug, or "decision:<slug>" for a decision record
+  /** Page URL. Chapters are /learn/<slug>, decision records /decisions/<slug>. */
+  href: string;
   title: string;
+  /** Curriculum number ("02.06") or record label ("ADR-004"). */
   chapter?: string;
-  level: number;
+  /** Level name for a chapter; "Decision record" for a record. */
   levelLabel: string;
   status: string;
   summary?: string;
@@ -25,7 +28,7 @@ export interface SearchDocument {
 
 export type StoredFields = Pick<
   SearchDocument,
-  'id' | 'title' | 'chapter' | 'levelLabel' | 'status' | 'summary' | 'links'
+  'id' | 'href' | 'title' | 'chapter' | 'levelLabel' | 'status' | 'summary' | 'links'
 >;
 
 export const SEARCH_FIELDS = [
@@ -41,7 +44,7 @@ export const SEARCH_FIELDS = [
 
 export const searchOptions: Options<SearchDocument> = {
   fields: [...SEARCH_FIELDS],
-  storeFields: ['id', 'title', 'chapter', 'levelLabel', 'status', 'summary', 'links'],
+  storeFields: ['id', 'href', 'title', 'chapter', 'levelLabel', 'status', 'summary', 'links'],
   searchOptions: {
     boost: {
       title: 6,
@@ -73,7 +76,7 @@ export type Hit = StoredFields & { score: number };
 
 export interface SearchResults {
   hits: Hit[];
-  /** Chapters connected to the strongest hits that did not match directly. */
+  /** Chapters and records connected to the strongest hits that did not match directly. */
   related: (StoredFields & { via: string })[];
 }
 

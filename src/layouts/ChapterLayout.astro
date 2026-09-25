@@ -3,10 +3,12 @@ import type { MarkdownHeading } from 'astro';
 import BaseLayout from './BaseLayout.astro';
 import StatusTag from '../components/StatusTag.astro';
 import RelatedTopics from '../components/RelatedTopics.astro';
+import DecisionList from '../components/DecisionList.astro';
 import { levelLabel } from '../lib/content/levels';
 import { isAvailable, type ChapterMeta } from '../lib/content/catalog';
 import { chapterHref } from '../lib/content/rules';
 import type { ChapterData } from '../lib/content/schema';
+import type { DecisionRecord } from '../lib/decisions/collection';
 import '../styles/prose.css';
 
 interface Props {
@@ -15,6 +17,8 @@ interface Props {
   previous?: ChapterMeta;
   next?: ChapterMeta;
   connections?: { related: ChapterMeta[]; referencedBy: ChapterMeta[] };
+  /** Decision records that link to this chapter. */
+  decisions?: DecisionRecord[];
 }
 
 const {
@@ -23,6 +27,7 @@ const {
   previous,
   next,
   connections = { related: [], referencedBy: [] },
+  decisions = [],
 } = Astro.props;
 const isPlaceholder = data.status === 'placeholder';
 const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
@@ -88,6 +93,15 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
         }
 
         <RelatedTopics {...connections} />
+
+        {
+          decisions.length > 0 && (
+            <section class="chapter-decisions" aria-labelledby="chapter-decisions">
+              <h2 id="chapter-decisions">Decisions that use this chapter</h2>
+              <DecisionList records={decisions} />
+            </section>
+          )
+        }
 
         {
           (previous || next) && (
@@ -335,6 +349,17 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
     margin: 0 0 var(--space-2);
     font-size: var(--text-sm);
     font-weight: 600;
+  }
+
+  /* Decision records */
+  .chapter-decisions {
+    max-width: var(--measure);
+    margin-top: var(--space-12);
+  }
+
+  .chapter-decisions h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-xl);
   }
 
   /* Previous / next */

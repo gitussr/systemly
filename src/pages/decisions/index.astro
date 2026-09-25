@@ -1,0 +1,109 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DecisionList from '../../components/DecisionList.astro';
+import { SHOW_DRAFTS } from '../../lib/content/env';
+import { getDecisionCatalog } from '../../lib/decisions/collection';
+import { adrLabel, checkSections } from '../../lib/decisions/records';
+import { ADR_SECTIONS } from '../../lib/decisions/schema';
+
+const { entries, records } = await getDecisionCatalog();
+
+// Every written record uses the standard sections. Approved records fail the build; drafts warn.
+const problems: string[] = [];
+for (const entry of entries.filter((e) => e.data.status !== 'placeholder')) {
+  const { headings } = await render(entry);
+  const { missing, outOfOrder } = checkSections(headings.filter((h) => h.depth === 2).map((h) => h.text));
+  const detail = [
+    missing.length > 0 && `missing ${missing.map((m) => `"## ${m}"`).join(', ')}`,
+    outOfOrder && `sections out of order (expected ${ADR_SECTIONS.join(' → ')})`,
+  ].filter(Boolean);
+  if (detail.length === 0) continue;
+  const line = `${adrLabel(entry.data.number)} ${entry.data.title}: ${detail.join('; ')} (${entry.filePath})`;
+  if (entry.data.status === 'approved') problems.push(line);
+  else console.warn(`[decisions] Draft ${line}`);
+}
+if (problems.length > 0) throw new Error(`Decision records without the standard sections:\n  ${problems.join('\n  ')}`);
+
+const placeholders = records.filter((r) => r.status === 'placeholder');
+for (const r of placeholders) console.info(`CONTENT REQUIRED: ${adrLabel(r.number)} ${r.title}`);
+const drafts = records.filter((r) => r.status === 'draft').length;
+console.info(
+  `[decisions] ${records.length - drafts} ${records.length - drafts === 1 ? 'record' : 'records'} published` +
+    (SHOW_DRAFTS && drafts > 0 ? `, ${drafts} draft shown for review` : ''),
+);
+---
+
+<BaseLayout
+  title="Decision records"
+  description="Architecture Decision Records: the context, options, trade-offs and reversal plan behind each decision."
+>
+  <div class="container decisions-page">
+    <header class="page-header">
+      <h1>Decision records</h1>
+      <p class="page-header__lede">
+        An architecture is a series of decisions. Each record keeps the context, the options that
+        were compared, what was decided and why, what it costs, how it can fail, and how to undo it.
+      </p>
+      <p class="page-header__sections">
+        Every record has the same sections:
+        <span>{ADR_SECTIONS.join(' · ')}</span>
+      </p>
+    </header>
+
+    {
+      records.length === 0 ? (
+        <p class="decisions-page__empty">
+          Decision records are being written and reviewed. They will appear here once approved.
+        </p>
+      ) : (
+        <DecisionList records={records} summaries />
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .decisions-page {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .page-header {
+    max-width: var(--measure);
+    margin-bottom: var(--space-8);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .page-header__lede {
+    margin: var(--space-3) 0 var(--space-4);
+    color: var(--color-text-muted);
+  }
+
+  .page-header__sections {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .page-header__sections span {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-text);
+  }
+
+  .decisions-page :global(.decisions) {
+    max-width: var(--measure);
+  }
+
+  .decisions-page__empty {
+    max-width: var(--measure);
+    padding: var(--space-6);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+</style>

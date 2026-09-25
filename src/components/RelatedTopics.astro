@@ -7,12 +7,13 @@ import { chapterHref } from '../lib/content/rules';
 interface Props {
   related: ChapterMeta[];
   referencedBy: ChapterMeta[];
+  relatedTitle?: string;
 }
 
-const { related, referencedBy } = Astro.props;
+const { related, referencedBy, relatedTitle = 'Related topics' } = Astro.props;
 const groups = [
   // Prefixed ids: chapters often have their own "Related Topics" heading (id related-topics).
-  { id: 'chapter-related', title: 'Related topics', chapters: related },
+  { id: 'chapter-related', title: relatedTitle, chapters: related },
   { id: 'chapter-referenced-by', title: 'Referenced by', chapters: referencedBy },
 ].filter((g) => g.chapters.length > 0);
 ---

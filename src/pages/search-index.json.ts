@@ -6,14 +6,20 @@ import type { APIRoute } from 'astro';
 import { getCurriculumEntries } from '../lib/content/chapters';
 import { buildConnections } from '../lib/content/graph';
 import { createIndex } from '../lib/search/index';
-import { toSearchDocument } from '../lib/search/documents';
+import { toDecisionSearchDocument, toSearchDocument } from '../lib/search/documents';
+import { getDecisionCatalog } from '../lib/decisions/collection';
+import { isDevOnlyPath } from '../lib/content/rules';
 
 export const GET: APIRoute = async () => {
-  const entries = await getCurriculumEntries();
+  const [entries, decisions] = await Promise.all([getCurriculumEntries(), getDecisionCatalog()]);
   const connections = buildConnections(entries.map((e) => e.data));
-  const documents = entries.map((e) =>
-    toSearchDocument(e.data, e.body ?? '', connections.get(e.data.slug)),
-  );
+  const titles = new Map(entries.map((e) => [e.data.slug, e.data.title]));
+  const documents = [
+    ...entries.map((e) => toSearchDocument(e.data, e.body ?? '', connections.get(e.data.slug))),
+    ...decisions.entries
+      .filter((e) => !isDevOnlyPath(e.filePath ?? ''))
+      .map((e) => toDecisionSearchDocument(e.data, e.body ?? '', titles)),
+  ];
   return new Response(JSON.stringify(createIndex(documents)), {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });

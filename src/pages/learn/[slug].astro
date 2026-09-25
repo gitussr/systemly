@@ -4,21 +4,29 @@ import ChapterLayout from '../../layouts/ChapterLayout.astro';
 import { getCurriculum, getPublishedChapters } from '../../lib/content/chapters';
 import { neighbours } from '../../lib/content/catalog';
 import { buildConnections } from '../../lib/content/graph';
+import { getDecisionCatalog } from '../../lib/decisions/collection';
+import { decisionsByChapter } from '../../lib/decisions/records';
 
 export async function getStaticPaths() {
-  const [chapters, curriculum] = await Promise.all([getPublishedChapters(), getCurriculum()]);
+  const [chapters, curriculum, { records }] = await Promise.all([
+    getPublishedChapters(),
+    getCurriculum(),
+    getDecisionCatalog(),
+  ]);
   const connections = buildConnections(curriculum);
+  const decisions = decisionsByChapter(records);
   return chapters.map((chapter) => ({
     params: { slug: chapter.id },
     props: {
       chapter,
       ...neighbours(curriculum, chapter.data.slug),
       connections: connections.get(chapter.data.slug) ?? { related: [], referencedBy: [] },
+      decisions: decisions.get(chapter.data.slug) ?? [],
     },
   }));
 }
 
-const { chapter, previous, next, connections } = Astro.props;
+const { chapter, previous, next, connections, decisions } = Astro.props;
 const { Content, headings } = await render(chapter);
 ---
 
@@ -28,6 +36,7 @@ const { Content, headings } = await render(chapter);
   previous={previous}
   next={next}
   connections={connections}
+  decisions={decisions}
 >
   {chapter.data.status !== 'placeholder' && <Content />}
 </ChapterLayout>
