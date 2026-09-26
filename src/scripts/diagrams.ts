@@ -9,8 +9,10 @@
 import type { Mermaid, MermaidConfig } from 'mermaid';
 
 const SELECTOR = 'figure[data-diagram="mermaid"]';
-/** Smallest scale a diagram is drawn at before it scrolls (≈9px labels at the 15px base). */
+/** Smallest scale a diagram is drawn at before it scrolls (≈8px labels at the 14px phone size). */
 const MIN_SCALE = 0.6;
+/** Labels match the 14px body copy on phones; 15px from 48rem, as before. */
+const WIDE = window.matchMedia('(min-width: 48rem)');
 let renderCount = 0;
 let mermaidPromise: Promise<Mermaid> | undefined;
 let configuredFor: string | undefined;
@@ -18,9 +20,12 @@ let configuredFor: string | undefined;
 async function loadMermaid(): Promise<Mermaid> {
   mermaidPromise ??= import('mermaid').then((m) => {
     // Redraw every diagram with the other palette when the reader switches theme.
-    new MutationObserver(() => {
+    const redraw = () => {
       for (const figure of document.querySelectorAll<HTMLElement>(SELECTOR)) void renderFigure(figure);
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    };
+    new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    // …and with the other label size when the window crosses the phone breakpoint.
+    WIDE.addEventListener('change', redraw);
     return m.default;
   });
   return mermaidPromise;
@@ -47,10 +52,10 @@ export async function renderFigure(figure: HTMLElement): Promise<void> {
   }
 
   const mermaid = await loadMermaid();
-  const theme = document.documentElement.dataset.theme ?? 'light';
-  if (configuredFor !== theme) {
+  const setup = `${document.documentElement.dataset.theme ?? 'light'} ${WIDE.matches ? 'wide' : 'narrow'}`;
+  if (configuredFor !== setup) {
     mermaid.initialize(config());
-    configuredFor = theme;
+    configuredFor = setup;
   }
 
   const id = `diagram-${++renderCount}`;
@@ -111,12 +116,15 @@ function config(): MermaidConfig {
   const token = (name: string) => css.getPropertyValue(name).trim();
   const dark = document.documentElement.dataset.theme === 'dark';
   const font = token('--font-sans');
+  const fontSize = WIDE.matches ? 15 : 14;
 
   return {
     startOnLoad: false,
     securityLevel: 'strict',
     theme: 'base',
     fontFamily: font,
+    // Sequence diagrams take their text size from here (Mermaid's default is 16).
+    fontSize,
     // Boxes fit their labels (Mermaid 12 defaults every box to at least 120px), with compact
     // spacing, so a row of three boxes still fits a phone screen.
     flowchart: { minNodeWidth: 0, nodeSpacing: 18, rankSpacing: 32, padding: 8, wrappingWidth: 130 },
@@ -125,7 +133,7 @@ function config(): MermaidConfig {
     themeVariables: {
       darkMode: dark,
       fontFamily: font,
-      fontSize: '15px',
+      fontSize: `${fontSize}px`,
       background: token('--color-surface'),
       primaryColor: token('--color-bg'),
       primaryTextColor: token('--color-text'),
