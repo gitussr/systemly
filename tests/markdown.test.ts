@@ -108,6 +108,28 @@ After.`);
     warn.mockRestore();
   });
 
+  it('removes a layout wrapper holding only components and reports them', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const out = await html(`Before.
+
+<row align="center" gap={3}>
+  <AsyncImage query="a" aspectRatio="1:1" maxWidth="64px"/>
+  <AsyncImage query="b" aspectRatio="1:1" maxWidth="64px"/>
+</row>
+
+After.`);
+    expect(out).not.toMatch(/<row|asyncimage/i);
+    expect(out).toContain('<p>Before.</p>');
+    expect(out).toContain('<p>After.</p>');
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('<AsyncImage> is not supported'));
+    warn.mockRestore();
+  });
+
+  it('keeps a wrapper that also holds ordinary content', async () => {
+    expect(await html('<div>\n  <p>Text</p>\n  <Widget/>\n</div>')).toContain('<p>Text</p>');
+  });
+
   it('keeps ordinary HTML', async () => {
     expect(await html(`<details><summary>More</summary>
 

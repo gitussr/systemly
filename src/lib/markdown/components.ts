@@ -10,6 +10,19 @@ import type { VFile } from 'vfile';
 
 /** A self-closing PascalCase tag: a component, never a standard HTML element. */
 const COMPONENT = /^<([A-Z][A-Za-z0-9]*)\b[\s\S]*\/>\s*$/;
+const COMPONENT_TAGS = /<([A-Z][A-Za-z0-9]*)\b[^>]*\/>/g;
+
+/**
+ * A layout wrapper holding only components, e.g.
+ * `<row gap={3}><AsyncImage … /><AsyncImage … /></row>`. Returns the component names.
+ */
+function wrappedComponents(source: string): string[] | null {
+  const wrapper = /^<([a-z][a-z0-9-]*)\b[^>]*>([\s\S]*)<\/\1>$/.exec(source);
+  if (!wrapper) return null;
+  const inner = wrapper[2]!;
+  const names = [...inner.matchAll(COMPONENT_TAGS)].map((m) => m[1]!);
+  return names.length > 0 && inner.replace(COMPONENT_TAGS, '').trim() === '' ? names : null;
+}
 
 export interface UnsupportedComponentOptions {
   onRemove?: (name: string, file: VFile) => void;
@@ -31,6 +44,11 @@ export function remarkUnsupportedComponents({ onRemove }: UnsupportedComponentOp
         const match = source === undefined ? null : COMPONENT.exec(source.trim());
         if (match) {
           onRemove?.(match[1]!, file);
+          return false;
+        }
+        const wrapped = n.type === 'html' ? wrappedComponents(source!.trim()) : null;
+        if (wrapped) {
+          for (const name of new Set(wrapped)) onRemove?.(name, file);
           return false;
         }
         if (Array.isArray(n.children)) visit(n as { children: unknown[] });

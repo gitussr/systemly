@@ -257,7 +257,7 @@ The renderer keeps text exactly as written: it does not convert quotes, `--` or 
 
 ### Components from other editors
 
-Self-closing component tags copied from other writing tools (e.g. `<AsyncImageGroup query={[…]} />`) cannot be rendered from Markdown. They are left in the file, skipped when rendering, and reported in the build output, so the content owner can decide what should replace them (for example, an image file).
+Self-closing component tags copied from other writing tools (e.g. `<AsyncImageGroup query={[…]} />`) cannot be rendered from Markdown, nor can a layout element that holds only such tags (e.g. `<row gap={3}>` around several `<AsyncImage … />`). They are left in the file, skipped when rendering, and reported in the build output, so the content owner can decide what should replace them (for example, an image file).
 
 ### Diagrams
 
