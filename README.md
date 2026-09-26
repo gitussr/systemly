@@ -231,7 +231,7 @@ List outgoing links once, in `related`. Each chapter page shows them as **Relate
 
 Write chapters the way that reads best in the file; the renderer fits the outline under the page title:
 
-- A leading `# Title` that repeats the frontmatter title is not rendered twice, also when it starts with the chapter number (`# 00.02 — Computer Fundamentals`).
+- A leading `# Title` that repeats the frontmatter title is not rendered twice, also when it starts with the chapter number (`# 00.02 — Computer Fundamentals`) or adds an expansion in brackets (`# 00.05 — DNS (Domain Name System)` for the title `DNS`).
 - If sections use `#`, every heading moves down one level.
 - Skipped levels (e.g. `#` followed by `###`) are closed, so the page outline stays valid for screen readers.
 

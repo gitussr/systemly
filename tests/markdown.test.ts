@@ -182,6 +182,18 @@ describe('heading normalisation', () => {
 Text.`)).toContain('00.03 — Computer Fundamentals</h2>');
   });
 
+  it('drops a leading H1 that is the title with an expansion in brackets', async () => {
+    const render2 = async (markdown: string) =>
+      (await renderer.render(markdown, { frontmatter: { title: 'DNS', chapter: '00.05' } })).code;
+    for (const heading of ['00.05 — DNS (Domain Name System)', 'DNS (Domain Name System)']) {
+      const out = await render2(`# ${heading}\n\n## Learning Objective`);
+      expect(out).not.toContain('Domain Name System');
+      expect(out).toContain('<h2 id="learning-objective">Learning Objective</h2>');
+    }
+    // Other words after the title are content, not a repeat.
+    expect(await render2('# DNS Records (A, AAAA)\n\nText.')).toContain('DNS Records (A, AAAA)</h2>');
+  });
+
   it('keeps a leading H1 that differs from the title, demoted', async () => {
     const out = await render('# Something else\n\nText.', 'Title');
     expect(out).toContain('<h2 id="something-else">Something else</h2>');
