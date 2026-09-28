@@ -56,12 +56,17 @@ export function remarkNormalizeHeadings() {
       if (lift > 0) for (const h of leading) h.depth = (h.depth - lift) as Heading['depth'];
     }
 
-    // Close gaps the author skipped (e.g. `#` followed directly by `###`): each heading is
-    // at most one level deeper than the previous one. The page title is level 1.
-    let previous = 1;
+    // Close gaps the author skipped (e.g. `#` followed directly by `###`): each heading sits
+    // one level below its parent, the nearest earlier heading written at a shallower level.
+    // Siblings therefore keep the same level: `#`, `###`, `###` gives h2, h3, h3, not h2,
+    // h3, h4. The page title is level 1.
+    const parents: { written: number; rendered: number }[] = [];
     for (const h of headings) {
-      h.depth = Math.min(h.depth, previous + 1) as Heading['depth'];
-      previous = h.depth;
+      const written = h.depth;
+      while (parents.length > 0 && parents.at(-1)!.written >= written) parents.pop();
+      const rendered = Math.min(written, (parents.at(-1)?.rendered ?? 1) + 1);
+      h.depth = rendered as Heading['depth'];
+      parents.push({ written, rendered });
     }
   };
 }

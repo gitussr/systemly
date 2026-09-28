@@ -238,6 +238,15 @@ Text.`)).toContain('00.03 — Computer Fundamentals</h2>');
     expect(out).toContain('<h2 id="2-next">2. Next</h2>');
   });
 
+  it('keeps siblings at one level when closing a skipped level', async () => {
+    const out = await render(['# 14. Concurrency', '### Process-based', '### Thread-based', '### Event-driven', '# 15. Next', '## Sub'].join('\n\n'), 'T');
+    expect(out).toContain('<h3 id="process-based">Process-based</h3>');
+    expect(out).toContain('<h3 id="thread-based">Thread-based</h3>');
+    expect(out).toContain('<h3 id="event-driven">Event-driven</h3>');
+    expect(out).toContain('<h2 id="15-next">15. Next</h2>');
+    expect(out).toContain('<h3 id="sub">Sub</h3>');
+  });
+
   it('leaves documents that already start at ## unchanged', async () => {
     const out = await render('## Section\n\n### Sub', 'Title');
     expect(out).toContain('<h2 id="section">Section</h2>');
