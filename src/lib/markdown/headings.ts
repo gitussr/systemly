@@ -4,7 +4,8 @@
  * 1. A leading `# Title` that repeats the frontmatter title is dropped
  *    (the layout already renders the title as the page's <h1>), also when it is
  *    prefixed with the chapter number, e.g. `# 00.02 — Computer Fundamentals`, or
- *    followed by an expansion in brackets, e.g. `# 00.05 — DNS (Domain Name System)`.
+ *    followed by an expansion in brackets, e.g. `# 00.05 — DNS (Domain Name System)`,
+ *    or by a subtitle after a colon, e.g. `# 00.06 — HTTP: How the Web Communicates`.
  * 2. If the document still uses `#` headings, every heading moves down one level,
  *    so `#` sections become <h2>, `##` become <h3>, and so on (capped at <h6>).
  *
@@ -32,7 +33,9 @@ export function remarkNormalizeHeadings() {
       }
       // "DNS (Domain Name System)" repeats the title "DNS" with its expansion.
       const expanded = text.replace(/\s*\([^)]*\)$/, '');
-      if (text === normalize(title) || expanded === normalize(title)) tree.children.shift();
+      // "HTTP: How the Web Communicates" repeats the title "HTTP" with a subtitle.
+      const subtitled = text.replace(/:\s.*$/, '');
+      if ([text, expanded, subtitled].includes(normalize(title))) tree.children.shift();
     }
 
     const headings = tree.children.flatMap(function collect(node: RootContent): Heading[] {

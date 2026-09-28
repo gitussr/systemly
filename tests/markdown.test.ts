@@ -194,6 +194,18 @@ Text.`)).toContain('00.03 — Computer Fundamentals</h2>');
     expect(await render2('# DNS Records (A, AAAA)\n\nText.')).toContain('DNS Records (A, AAAA)</h2>');
   });
 
+  it('drops a leading H1 that is the title with a subtitle after a colon', async () => {
+    const render2 = async (markdown: string) =>
+      (await renderer.render(markdown, { frontmatter: { title: 'HTTP', chapter: '00.06' } })).code;
+    for (const heading of ['00.06 — HTTP: How the Web Communicates', 'HTTP: How the Web Communicates']) {
+      const out = await render2(`# ${heading}\n\n## Learning Objectives`);
+      expect(out).not.toContain('How the Web Communicates');
+      expect(out).toContain('<h2 id="learning-objectives">Learning Objectives</h2>');
+    }
+    // A different lead before the colon is content, not a repeat.
+    expect(await render2('# HTTP Versions: 1.1 to 3\n\nText.')).toContain('HTTP Versions: 1.1 to 3</h2>');
+  });
+
   it('keeps a leading H1 that differs from the title, demoted', async () => {
     const out = await render('# Something else\n\nText.', 'Title');
     expect(out).toContain('<h2 id="something-else">Something else</h2>');
