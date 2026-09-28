@@ -18,6 +18,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         type="search"
         name="q"
         placeholder="Search chapters, decisions and comparisons, e.g. load balancer"
+        data-placeholder-short="Search, e.g. load balancer"
         autocomplete="off"
         spellcheck="false"
         enterkeyhint="search"
@@ -41,6 +42,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <script>
   import { initSearch } from '../scripts/search';
   initSearch();
+
+  // The full placeholder is cut off on phones; narrow screens get a shorter one.
+  const input = document.querySelector<HTMLInputElement>('#search-input');
+  if (input) {
+    const full = input.placeholder;
+    const short = input.dataset.placeholderShort ?? full;
+    const wide = window.matchMedia('(min-width: 48rem)');
+    const apply = () => (input.placeholder = wide.matches ? full : short);
+    apply();
+    wide.addEventListener('change', apply);
+  }
 </script>
 
 <style>
