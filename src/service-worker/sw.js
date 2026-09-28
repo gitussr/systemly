@@ -2,18 +2,25 @@
  *
  * The build (src/integrations/service-worker.ts) prepends:
  *   const VERSION = '<hash of the precached files>';
- *   const PRECACHE = ['/', '/roadmap', …];
+ *   const INSTALL = ['/offline', …];            // small: saved on install
+ *   const PRECACHE = ['/', '/roadmap', …];      // saved later, in the background
  *
  * Strategy
- * - Install: save the app shell, search index, fonts and every approved chapter.
- * - Pages: network first (short timeout), so online readers always get the latest text;
- *   offline, the saved copy is served, or /offline if the page was never saved.
+ * - Install: save only the offline page and what it needs, so installing never competes
+ *   with the pages a reader opens next.
+ * - Background save: when a page reports the browser is idle it posts "warm"; the app shell,
+ *   search index, fonts and every approved chapter are then saved one file at a time at low
+ *   priority, skipping files already saved. Nothing is fetched when the reader asked to save data.
+ * - Pages: network first (short timeout), so online readers always get the latest text. With
+ *   navigation preload the request starts while the worker boots, and the response is handed
+ *   to the browser as it arrives; the offline copy is written afterwards. Offline, the saved
+ *   copy is served, or /offline if the page was never saved.
  * - /_astro/* (content-hashed, immutable): cache first, saved on first use
  *   (this is how Mermaid chunks become available offline after a diagram is viewed).
  * - Other files: stale-while-revalidate.
  * A new version activates immediately; old caches are removed.
  */
-/* global VERSION, PRECACHE */
+/* global VERSION, INSTALL, PRECACHE */
 
 const PRECACHE_NAME = `systemly-precache-${VERSION}`;
 const RUNTIME_NAME = 'systemly-runtime';
@@ -30,7 +37,7 @@ self.addEventListener('install', (event) => {
     (async () => {
       const cache = await caches.open(PRECACHE_NAME);
       await Promise.all(
-        PRECACHE.map(async (url) => {
+        INSTALL.map(async (url) => {
           const response = await fetch(url, { cache: 'reload' });
           if (!response.ok) throw new Error(`Precache failed for ${url}: ${response.status}`);
           await cache.put(url, await cleanResponse(response));
@@ -44,6 +51,8 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      // Start page requests while the worker is still booting.
+      if (self.registration.navigationPreload) await self.registration.navigationPreload.enable();
       const names = await caches.keys();
       await Promise.all(
         names
@@ -62,7 +71,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(networkFirstPage(request, url));
+    event.respondWith(networkFirstPage(event, url));
   } else if (url.pathname.startsWith('/_astro/')) {
     event.respondWith(cacheFirst(request));
   } else {
@@ -70,13 +79,44 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
-async function networkFirstPage(request, url) {
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'warm') event.waitUntil((warming ??= warm().finally(() => (warming = undefined))));
+});
+
+let warming;
+
+/** Saves the rest of the offline copy: one file at a time, low priority, skipping saved files. */
+async function warm() {
+  const cache = await caches.open(PRECACHE_NAME);
+  for (const url of PRECACHE) {
+    if (self.navigator.connection?.saveData) return;
+    if (await cache.match(url, MATCH)) continue;
+    try {
+      const response = await fetch(url, { cache: 'reload', priority: 'low' });
+      if (response.ok) await cache.put(url, await cleanResponse(response));
+    } catch {
+      return; // Offline or the connection dropped: try again on a later page.
+    }
+  }
+}
+
+async function networkFirstPage(event, url) {
+  const { request } = event;
   try {
-    const response = await withTimeout(fetch(request), NETWORK_TIMEOUT_MS);
+    const response = await withTimeout(
+      (async () => (await event.preloadResponse) ?? fetch(request))(),
+      NETWORK_TIMEOUT_MS,
+    );
     if (response.ok) {
-      const runtime = await caches.open(RUNTIME_NAME);
-      await runtime.put(pageKey(url), await cleanResponse(response.clone()));
-      void trim(runtime);
+      // Hand the page to the browser now; the offline copy is written while it renders.
+      const copy = response.clone();
+      event.waitUntil(
+        (async () => {
+          const runtime = await caches.open(RUNTIME_NAME);
+          await runtime.put(pageKey(url), await cleanResponse(copy));
+          await trim(runtime);
+        })().catch(() => {}),
+      );
     }
     return response;
   } catch {

@@ -190,3 +190,33 @@ pre {
     scroll-behavior: auto !important;
   }
 }
+
+/* Page loader: a thin bar at the top while the next page loads (set by BaseLayout). */
+.page-loader {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  inset-inline: 0;
+  z-index: 200;
+  height: 3px;
+  background: var(--color-accent-ink);
+  box-shadow: 0 0 8px var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.is-navigating .page-loader {
+  opacity: 1;
+  animation: page-loader 8s cubic-bezier(0.08, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes page-loader {
+  from {
+    transform: scaleX(0.08);
+  }
+  to {
+    transform: scaleX(0.94);
+  }
+}

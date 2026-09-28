@@ -41,6 +41,39 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
     <meta name="generator" content={Astro.generator} />
   </head>
   <body>
+    <div class="page-loader" aria-hidden="true"></div>
+    <script is:inline>
+      // Page loader: a thin bar at the top while the next page loads. It appears only if the
+      // navigation takes longer than a moment, so fast loads never flash.
+      (() => {
+        const root = document.documentElement;
+        let timer;
+        const start = () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => root.classList.add('is-navigating'), 120);
+        };
+        const stop = () => {
+          clearTimeout(timer);
+          root.classList.remove('is-navigating');
+        };
+        document.addEventListener('click', (event) => {
+          if (event.defaultPrevented || event.button !== 0) return;
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+          if (!link || (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+          const url = new URL(link.href, location.href);
+          if (url.origin !== location.origin) return;
+          // Same page (e.g. a link to a heading): nothing loads.
+          if (url.pathname === location.pathname && url.search === location.search) return;
+          start();
+        });
+        document.addEventListener('submit', (event) => {
+          if (!event.defaultPrevented) start();
+        });
+        // Back/forward can restore this page from memory with the bar still showing.
+        addEventListener('pageshow', stop);
+      })();
+    </script>
     <a class="skip-link" href="#main">Skip to content</a>
     <SiteHeader />
     <main id="main" tabindex="-1">
@@ -52,8 +85,17 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
       import.meta.env.PROD && (
         <script is:inline>
           // Offline reading and installability. Registered after load so it never delays the page.
+          // Once the browser is idle, the worker is asked to save the rest of the offline copy
+          // (one file at a time); readers who asked to save data are skipped.
           if ('serviceWorker' in navigator) {
-            addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+            addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js').catch(() => {});
+              if (navigator.connection?.saveData) return;
+              const idle = window.requestIdleCallback ?? ((callback) => setTimeout(callback, 2000));
+              navigator.serviceWorker.ready.then((registration) =>
+                idle(() => registration.active?.postMessage({ type: 'warm' }), { timeout: 10000 }),
+              );
+            });
           }
         </script>
       )
