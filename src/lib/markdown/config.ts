@@ -6,6 +6,7 @@ import { unified } from '@astrojs/markdown-remark';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import type { AstroMarkdownOptions } from '@astrojs/markdown-remark';
+import { rehypeCalculators } from './calculators';
 import { remarkCallouts } from './callouts';
 import { remarkUnsupportedComponents } from './components';
 import { remarkNormalizeHeadings } from './headings';
@@ -16,8 +17,9 @@ import { rehypeTaskListLabels } from './task-lists';
 export const sharedMarkdownOptions = {
   syntaxHighlight: {
     type: 'shiki',
-    // Mermaid blocks are turned into diagrams by rehypeMermaid and rendered in the browser.
-    excludeLangs: ['mermaid'],
+    // Mermaid blocks are turned into diagrams by rehypeMermaid and rendered in the browser;
+    // calculator blocks into calculators by rehypeCalculators.
+    excludeLangs: ['mermaid', 'calculator'],
   },
   shikiConfig: {
     // High-contrast light theme: github-light's orange tokens are 3.6:1 on white (below WCAG AA).
@@ -52,6 +54,7 @@ export const markdownProcessor = unified({
   rehypePlugins: [
     [rehypeKatex, { output: 'mathml', throwOnError: false }],
     rehypeMermaid,
+    rehypeCalculators,
     rehypeTableScroll,
     rehypeTaskListLabels,
   ],

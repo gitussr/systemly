@@ -9,7 +9,7 @@
   margin-top: var(--space-4);
 }
 
-.prose :where(p, ul, ol, blockquote, pre, .table-scroll, .callout, .diagram) {
+.prose :where(p, ul, ol, blockquote, pre, .table-scroll, .callout, .diagram, .calculator) {
   margin-block: 0;
 }
 
@@ -65,7 +65,8 @@
   }
 
   .prose pre,
-  .prose .diagram {
+  .prose .diagram,
+  .prose .calculator {
     padding: var(--space-4);
   }
 
@@ -157,6 +158,91 @@
 
 .prose * + .diagram {
   margin-top: var(--space-4);
+}
+
+/* Calculators: sliders appear with JavaScript; without it the starting values and result show. */
+.prose .calculator {
+  display: grid;
+  gap: var(--space-3);
+  margin-inline: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.prose * + .calculator {
+  margin-top: var(--space-4);
+}
+
+.prose .calculator p {
+  margin: 0;
+}
+
+.prose .calculator__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.prose :where(.calculator__description, .calculator__caption) {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.prose .calculator__field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.prose .calculator__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.prose .calculator__value {
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-code-bg);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.prose .calculator input[type='range'] {
+  width: 100%;
+  min-height: 1.5rem;
+  margin: 0;
+  accent-color: var(--color-accent-ink);
+}
+
+.prose .calculator input[type='range']:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.prose .calculator__result {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-code-bg);
+  text-align: center;
+}
+
+.prose .calculator__result-label,
+.prose .calculator__formula {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.prose .calculator__result-value {
+  color: var(--color-accent-ink);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Before rendering (or without JavaScript) the source is shown as plain text. */

@@ -253,7 +253,42 @@ The renderer keeps text exactly as written: it does not convert quotes, `--` or 
 
 ### Math
 
-`$inline$` and `$$display$$` LaTeX are rendered at build time as MathML (remark-math + rehype-katex), which browsers draw natively: no math JavaScript, stylesheet or fonts are downloaded. Wide formulas scroll sideways on phones.
+`$inline$` and `$$display$$` LaTeX are rendered at build time as MathML (remark-math + rehype-katex), which browsers draw natively: no math JavaScript, stylesheet or fonts are downloaded. Wide formulas scroll sideways on phones. `\(inline\)` delimiters are not recognised; write `$inline$`.
+
+### Calculators
+
+A ` ```calculator ` block becomes an interactive calculator: one labelled slider per input and a result that updates as they move. All wording lives in the block:
+
+````markdown
+```calculator
+title: Little's Law Calculator
+description: Adjust the values to calculate average in-flight requests.   # optional
+inputs:
+  - id: throughput             # used in the formula as {throughput}
+    label: Throughput
+    unit: req/s
+    min: 10
+    max: 1000
+    step: 10
+    value: 200                 # starting value
+  - id: response-time
+    label: Average response time
+    unit: ms
+    min: 50
+    max: 3000
+    step: 50
+    value: 500
+    divisor: 1000              # optional: divide before use (ms → seconds)
+result:
+  label: Average in-flight requests
+  operation: product           # the inputs are multiplied (after their divisors)
+  digits: 1                    # maximum decimal places shown
+formula: "{throughput} × {response-time} seconds"   # optional
+caption: This is an average, not a maximum capacity estimate.        # optional
+```
+````
+
+The page is built with the starting values and their result, so without JavaScript it reads as a worked example; the calculator script loads only on pages that have one. The build rejects unknown fields, a starting value outside its range and formula placeholders that are not input ids.
 
 ### Components from other editors
 

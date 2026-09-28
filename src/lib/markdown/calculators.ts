@@ -1,0 +1,168 @@
+/**
+ * Turns ```calculator code blocks into interactive calculators. The block holds YAML: the
+ * title, the inputs (label, unit, range, starting value) and how they combine. All wording
+ * stays in the chapter file.
+ *
+ *   <figure class="calculator" data-calculator="{…config as JSON…}">
+ *     …title, one labelled slider per input, the result and the formula…
+ *   </figure>
+ *
+ * The page is rendered with the starting values and their result, so without JavaScript it
+ * still reads as a worked example; the sliders are `hidden` until src/scripts/calculators.ts
+ * shows them and keeps the numbers up to date. An invalid block fails the build.
+ */
+import { z } from 'astro/zod';
+import { parse } from 'yaml';
+import type { Element, ElementContent, Root, RootContent } from 'hast';
+import type { VFile } from 'vfile';
+import {
+  FORMULA_PLACEHOLDER,
+  compute,
+  formatFormula,
+  formatInput,
+  formatResult,
+  initialValues,
+  type CalculatorConfig,
+} from './calculator-model';
+
+const inputSchema = z
+  .object({
+    id: z.string().regex(/^[a-z][a-z0-9-]*$/, 'use lowercase letters, digits and hyphens'),
+    label: z.string().min(1),
+    unit: z.string().min(1),
+    min: z.number(),
+    max: z.number(),
+    step: z.number().positive(),
+    value: z.number(),
+    divisor: z.number().positive().default(1),
+  })
+  .strict()
+  .refine((i) => i.min < i.max, { message: 'min must be less than max' })
+  .refine((i) => i.value >= i.min && i.value <= i.max, { message: 'value must be between min and max' });
+
+const configSchema = z
+  .object({
+    title: z.string().min(1),
+    description: z.string().min(1).optional(),
+    inputs: z.array(inputSchema).min(1),
+    result: z
+      .object({
+        label: z.string().min(1),
+        operation: z.literal('product'),
+        digits: z.number().int().min(0).max(6).default(1),
+      })
+      .strict(),
+    formula: z.string().min(1).optional(),
+    caption: z.string().min(1).optional(),
+  })
+  .strict()
+  .superRefine((config, ctx) => {
+    const ids = config.inputs.map((i) => i.id);
+    const duplicate = ids.find((id, n) => ids.indexOf(id) !== n);
+    if (duplicate) ctx.addIssue({ code: 'custom', message: `input id "${duplicate}" is used twice` });
+    for (const [, id] of (config.formula ?? '').matchAll(FORMULA_PLACEHOLDER)) {
+      if (!ids.includes(id!)) ctx.addIssue({ code: 'custom', message: `formula uses {${id}}, which is not an input id` });
+    }
+  });
+
+export function parseCalculator(source: string): CalculatorConfig {
+  const result = configSchema.safeParse(parse(source));
+  if (!result.success) {
+    const issues = result.error.issues.map((i) => `${i.path.join('.') || 'calculator'}: ${i.message}`);
+    throw new Error(`Invalid calculator block — ${issues.join('; ')}`);
+  }
+  return result.data;
+}
+
+export function rehypeCalculators() {
+  return (tree: Root, file: VFile) => {
+    let count = 0;
+    const replace = (parent: Root | Element) => {
+      parent.children = parent.children.map((child: RootContent | ElementContent) => {
+        if (child.type !== 'element') return child;
+        const source = calculatorSource(child);
+        if (source === undefined) {
+          replace(child);
+          return child;
+        }
+        let config: CalculatorConfig;
+        try {
+          config = parseCalculator(source);
+        } catch (error) {
+          throw new Error(`${(error as Error).message}${file.path ? ` (${file.path})` : ''}`);
+        }
+        return renderCalculator(config, `calculator-${++count}`);
+      }) as typeof parent.children;
+    };
+    replace(tree);
+  };
+}
+
+/** The text of a <pre><code class="language-calculator"> block. */
+function calculatorSource(node: Element): string | undefined {
+  if (node.tagName !== 'pre') return undefined;
+  const code = node.children.find((c): c is Element => c.type === 'element' && c.tagName === 'code');
+  const classes = code?.properties.className;
+  if (!Array.isArray(classes) || !classes.includes('language-calculator')) return undefined;
+  const text = (n: ElementContent): string =>
+    n.type === 'text' ? n.value : n.type === 'element' ? n.children.map(text).join('') : '';
+  return code!.children.map(text).join('');
+}
+
+function el(tagName: string, properties: Element['properties'], children: (ElementContent | string)[] = []): Element {
+  return {
+    type: 'element',
+    tagName,
+    properties,
+    children: children.map((c) => (typeof c === 'string' ? { type: 'text', value: c } : c)),
+  };
+}
+
+function renderCalculator(config: CalculatorConfig, id: string): Element {
+  const values = initialValues(config);
+  const titleId = `${id}-title`;
+  const children: Element[] = [el('p', { className: ['calculator__title'], id: titleId }, [config.title])];
+  if (config.description) children.push(el('p', { className: ['calculator__description'] }, [config.description]));
+
+  for (const input of config.inputs) {
+    const inputId = `${id}-${input.id}`;
+    const shown = formatInput(input, input.value);
+    children.push(
+      el('div', { className: ['calculator__field'] }, [
+        el('div', { className: ['calculator__row'] }, [
+          el('label', { htmlFor: [inputId] }, [input.label]),
+          el('output', { className: ['calculator__value'], htmlFor: [inputId], dataValueFor: input.id }, [shown]),
+        ]),
+        el('input', {
+          type: 'range',
+          id: inputId,
+          min: String(input.min),
+          max: String(input.max),
+          step: String(input.step),
+          value: String(input.value),
+          ariaValueText: shown,
+          dataInput: input.id,
+          hidden: true,
+        }),
+      ]),
+    );
+  }
+
+  const result: Element[] = [
+    el('p', { className: ['calculator__result-label'] }, [config.result.label]),
+    el('output', { className: ['calculator__result-value'], ariaLive: 'polite', dataResult: '' }, [
+      formatResult(config, compute(config, values)),
+    ]),
+  ];
+  if (config.formula) {
+    result.push(el('p', { className: ['calculator__formula'], dataFormula: '' }, [formatFormula(config, values)]));
+  }
+  children.push(el('div', { className: ['calculator__result'] }, result));
+  if (config.caption) children.push(el('p', { className: ['calculator__caption'] }, [config.caption]));
+
+  return el(
+    'figure',
+    { className: ['calculator'], role: 'group', ariaLabelledBy: [titleId], dataCalculator: JSON.stringify(config) },
+    children,
+  );
+}

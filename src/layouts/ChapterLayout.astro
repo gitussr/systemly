@@ -182,6 +182,10 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
   if (document.querySelector('figure[data-diagram]')) {
     void import('../scripts/diagrams').then(({ renderDiagrams }) => renderDiagrams());
   }
+  // …and the calculator script only when it contains a calculator.
+  if (document.querySelector('figure[data-calculator]')) {
+    void import('../scripts/calculators').then(({ initCalculators }) => initCalculators());
+  }
 </script>
 
 <style>
