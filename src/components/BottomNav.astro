@@ -134,9 +134,15 @@ const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
     transition: background-color 150ms ease;
   }
 
+  /* Hairline icons: a 1px stroke on screen, whatever size the icon is drawn at. */
   .bottom-nav__indicator :global(.icon) {
     width: 1.5rem;
     height: 1.5rem;
+    stroke-width: 1;
+  }
+
+  .bottom-nav__indicator :global(.icon *) {
+    vector-effect: non-scaling-stroke;
   }
 
   .bottom-nav__label {
