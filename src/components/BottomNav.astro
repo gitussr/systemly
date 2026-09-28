@@ -244,6 +244,11 @@ const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
   .more-sheet__close :global(.icon) {
     width: 1.5rem;
     height: 1.5rem;
+    stroke-width: 1;
+  }
+
+  .more-sheet__close :global(.icon *) {
+    vector-effect: non-scaling-stroke;
   }
 
   .more-sheet__list {
@@ -268,6 +273,11 @@ const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
     width: 1.5rem;
     height: 1.5rem;
     color: var(--color-text-muted);
+    stroke-width: 1;
+  }
+
+  .more-sheet__item :global(.icon *) {
+    vector-effect: non-scaling-stroke;
   }
 
   .more-sheet__item:hover {
