@@ -58,6 +58,11 @@ export async function renderFigure(figure: HTMLElement): Promise<void> {
     configuredFor = setup;
   }
 
+  // Load the font files the labels need (e.g. the symbols subset for ✓) before Mermaid measures
+  // them; a label sized with a fallback glyph can wrap once the real one arrives, clipping its end.
+  const font = getComputedStyle(document.documentElement).getPropertyValue('--font-sans').trim();
+  await document.fonts.load(`${WIDE.matches ? 15 : 14}px ${font}`, source).catch(() => undefined);
+
   const id = `diagram-${++renderCount}`;
   try {
     // Validate first: on a syntax error Mermaid would otherwise render an error graphic.
