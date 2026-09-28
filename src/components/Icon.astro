@@ -14,10 +14,17 @@ const { name, class: className } = Astro.props;
   viewBox="0 0 24 24"
   fill="none"
   stroke="currentColor"
-  stroke-width="2"
+  stroke-width="1"
   stroke-linecap="round"
   stroke-linejoin="round"
   aria-hidden="true"
   focusable="false"
   set:html={ICONS[name]}
 />
+
+<style>
+  /* Hairline icons: a 1px stroke on screen, whatever size the icon is drawn at. */
+  .icon :global(*) {
+    vector-effect: non-scaling-stroke;
+  }
+</style>
