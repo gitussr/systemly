@@ -73,9 +73,14 @@
     height: 1.25rem;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.75;
+    stroke-width: 1;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  /* Hairline, as in the bottom navigation: 1px on screen at any icon size. */
+  .theme-toggle svg * {
+    vector-effect: non-scaling-stroke;
   }
 
   .theme-toggle__sun,
