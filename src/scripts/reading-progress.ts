@@ -3,6 +3,7 @@
  *
  * - a thin bar across the top of the viewport that fills as the reader moves through the
  *   chapter text (not the related topics and pager below it);
+ * - a floating ring with the percentage read (a tick when finished) that returns to the top;
  * - "N min left" beside "On this page", counting down;
  * - in the table of contents, the section being read is highlighted (aria-current) and the
  *   sections before it are marked as read; on wide screens a rail beside it fills too;
@@ -19,6 +20,8 @@ import { loadLog, READ_AT, recordProgress } from '../lib/reading/store';
 const ACTIVE_LINE = 0.25;
 /** Saved progress between these offers "Continue reading" (not for a chapter barely started or done). */
 const RESUME_FROM = 0.05;
+/** The floating ring appears once the reader is this far in. */
+const RING_FROM = 0.02;
 
 export function initReadingProgress(): void {
   const prose = document.querySelector<HTMLElement>('.chapter .prose');
@@ -28,6 +31,7 @@ export function initReadingProgress(): void {
   const slug = root.dataset.slug ?? '';
   let saved = loadLog()[slug] ?? 0;
   const resume = setupResume(prose, saved);
+  const ring = setupRing();
 
   const rail = document.querySelector<HTMLElement>('.toc__rail-fill');
   const labels = [...document.querySelectorAll<HTMLElement>('[data-reading-left]')];
@@ -59,6 +63,7 @@ export function initReadingProgress(): void {
     );
 
     bar.style.transform = `scaleX(${progress})`;
+    ring?.update(progress);
     if (slug && (progress >= saved + 0.01 || (progress === 1 && saved < 1))) saved = recordProgress(slug, progress);
     if (progress > RESUME_FROM) resume?.hide();
     if (rail) rail.style.transform = `scaleY(${progress})`;
@@ -117,6 +122,36 @@ function setupResume(prose: HTMLElement, saved: number): { hide: () => void } | 
   close?.addEventListener('click', hide);
   box.hidden = false;
   return { hide };
+}
+
+/** The floating progress ring: fill, percentage, tick when finished; tapping returns to the top. */
+function setupRing(): { update: (progress: number) => void } | undefined {
+  const ring = document.querySelector<HTMLButtonElement>('[data-reading-ring]');
+  if (!ring) return undefined;
+  const fill = ring.querySelector<SVGCircleElement>('.reading-ring__fill');
+  const value = ring.querySelector<HTMLElement>('[data-reading-percent]');
+  ring.addEventListener('click', () => {
+    const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+    document.querySelector<HTMLElement>('#main')?.focus({ preventScroll: true });
+  });
+
+  let last = -1;
+  return {
+    update(progress) {
+      const percent = Math.round(progress * 100);
+      if (percent === last) return;
+      last = percent;
+      const shown = progress >= RING_FROM;
+      ring.classList.toggle('is-shown', shown);
+      // Out of the tab order while hidden.
+      ring.tabIndex = shown ? 0 : -1;
+      ring.classList.toggle('is-done', percent >= 99);
+      fill?.style.setProperty('stroke-dashoffset', String(100 - percent));
+      if (value) value.textContent = `${percent}%`;
+      ring.setAttribute('aria-label', percent >= 99 ? 'Finished. Back to top' : `${percent}% read. Back to top`);
+    },
+  };
 }
 
 /** Words in the chapter text, leaving out diagrams (their text copy repeats the labels). */
