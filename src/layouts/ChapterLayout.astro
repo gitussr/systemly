@@ -39,6 +39,29 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
 ---
 
 <BaseLayout title={data.title} description={data.summary}>
+  {
+    !isPlaceholder && (
+      <>
+        <div class="reading-progress" data-slug={data.slug} aria-hidden="true">
+          <div class="reading-progress__bar" />
+        </div>
+        <div class="reading-resume" role="region" aria-label="Continue reading" hidden>
+          <button class="reading-resume__go" type="button" data-resume>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 5v14M6 13l6 6 6-6" />
+            </svg>
+            Continue reading
+            <span class="reading-resume__percent" data-resume-percent />
+          </button>
+          <button class="reading-resume__close" type="button" aria-label="Dismiss" data-resume-close>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+      </>
+    )
+  }
   <div class="container chapter-page">
     <nav class="breadcrumb" aria-label="Breadcrumb">
       <ol>
@@ -62,7 +85,9 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
         {
           toc.length > 1 && (
             <details class="toc toc--inline">
-              <summary>On this page</summary>
+              <summary>
+                On this page<span class="toc__time" data-reading-left />
+              </summary>
               <ol>
                 {toc.map((h) => (
                   <li>
@@ -162,13 +187,19 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
           <aside class="toc toc--side">
             <nav aria-label="On this page">
               <p class="toc__title">On this page</p>
-              <ol>
-                {toc.map((h) => (
-                  <li>
-                    <a href={`#${h.slug}`}>{h.text}</a>
-                  </li>
-                ))}
-              </ol>
+              <p class="toc__time toc__time--side" data-reading-left />
+              <div class="toc__list">
+                <span class="toc__rail" aria-hidden="true">
+                  <span class="toc__rail-fill" />
+                </span>
+                <ol>
+                  {toc.map((h) => (
+                    <li>
+                      <a href={`#${h.slug}`}>{h.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </nav>
           </aside>
         )
@@ -182,6 +213,10 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
   if (document.querySelector('figure[data-diagram]')) {
     void import('../scripts/diagrams').then(({ renderDiagrams }) => renderDiagrams());
   }
+  // Reading progress: the top bar, time left and the current section in the table of contents.
+  if (document.querySelector('.reading-progress')) {
+    void import('../scripts/reading-progress').then(({ initReadingProgress }) => initReadingProgress());
+  }
   // …and the calculator script only when it contains a calculator.
   if (document.querySelector('figure[data-calculator]')) {
     void import('../scripts/calculators').then(({ initCalculators }) => initCalculators());
@@ -191,6 +226,125 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
 <style>
   .chapter-page {
     padding-block: var(--space-4) var(--space-12);
+  }
+
+  /* Reading progress: fills across the top as the reader moves through the chapter text. */
+  .reading-progress {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    inset-inline: 0;
+    /* Just below the page loader (200), which takes this spot while the next page loads. */
+    z-index: 199;
+    height: 3px;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+  }
+
+  .reading-progress__bar {
+    height: 100%;
+    border-radius: 0 2px 2px 0;
+    background: var(--color-accent-ink);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+  }
+
+  :global(.is-navigating) .reading-progress {
+    opacity: 0;
+  }
+
+  @media print {
+    .reading-progress,
+    .reading-resume {
+      display: none;
+    }
+  }
+
+  /* "Continue reading": a pill above the bottom navigation (phones) or near the bottom. */
+  .reading-resume {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--space-3));
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    max-width: calc(100vw - 2 * var(--gutter));
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    box-shadow: 0 6px 24px rgb(7 21 30 / 0.14);
+    transform: translateX(-50%);
+  }
+
+  .reading-resume[hidden] {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .reading-resume {
+      bottom: var(--space-6);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reading-resume {
+      animation: resume-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+  }
+
+  @keyframes resume-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 0.5rem);
+    }
+  }
+
+  .reading-resume button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .reading-resume__go {
+    padding-inline: var(--space-3) var(--space-2);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .reading-resume__go:hover,
+  .reading-resume__close:hover {
+    background: var(--color-bg);
+  }
+
+  .reading-resume__percent {
+    color: var(--color-accent-ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reading-resume__close {
+    justify-content: center;
+    width: 2.75rem;
+    color: var(--color-text-muted) !important;
+  }
+
+  .reading-resume svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   @media (min-width: 48rem) {
@@ -334,8 +488,30 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
     text-decoration: none;
   }
 
-  .toc a:hover {
+  .toc a:hover,
+  .toc a[aria-current='true'] {
     color: var(--color-text);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .toc a {
+      transition: color var(--duration-fast) ease;
+    }
+  }
+
+  /* Time left, e.g. "On this page · 12 min left". */
+  .toc__time {
+    color: var(--color-text-muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toc__time:empty {
+    display: none;
+  }
+
+  summary .toc__time::before {
+    content: ' · ';
   }
 
   .toc--inline {
@@ -358,6 +534,10 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
     margin-top: var(--space-2);
   }
 
+  .toc--inline a[aria-current='true'] {
+    font-weight: 500;
+  }
+
   .toc--side {
     display: none;
   }
@@ -376,8 +556,6 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
       top: var(--space-8);
       max-height: calc(100vh - var(--space-16));
       overflow-y: auto;
-      padding-left: var(--space-4);
-      border-left: 1px solid var(--color-border);
     }
   }
 
@@ -385,6 +563,49 @@ const toc = isPlaceholder ? [] : headings.filter((h) => h.depth === 2);
     margin: 0 0 var(--space-2);
     font-size: var(--text-sm);
     font-weight: 600;
+  }
+
+  .toc__time--side {
+    margin: calc(var(--space-1) * -1) 0 var(--space-3);
+    font-size: 0.75rem;
+  }
+
+  /* Side contents: a rail beside the sections fills with the reading progress, and the
+     current section is marked on it. */
+  .toc__list {
+    position: relative;
+    padding-left: var(--space-4);
+  }
+
+  .toc__rail {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 1px;
+    background: var(--color-border);
+  }
+
+  .toc__rail-fill {
+    position: absolute;
+    inset: 0 -0.5px;
+    background: var(--color-accent);
+    transform: scaleY(0);
+    transform-origin: top center;
+    will-change: transform;
+  }
+
+  .toc__list a {
+    position: relative;
+  }
+
+  .toc__list a[aria-current='true']::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--space-1);
+    left: calc(var(--space-4) * -1 - 1px);
+    width: 3px;
+    border-radius: 2px;
+    background: var(--color-accent-ink);
   }
 
   /* Decision records */

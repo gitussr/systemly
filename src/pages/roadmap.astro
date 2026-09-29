@@ -26,9 +26,25 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
         {
           levels.map((l) => (
             <li>
-              <a href={`#level-${l.level}`} title={l.name}>
-                <span class="visually-hidden">Level </span>
-                {l.level}
+              <a
+                class:list={['level-chip', { 'is-soon': l.available === 0 }]}
+                href={`#level-${l.level}`}
+                data-level={l.level}
+                data-slugs={l.chapters.filter(isAvailable).map((c) => c.slug).join(' ')}
+                title={`${l.available} of ${l.chapters.length} chapters available`}
+              >
+                <span class="level-chip__ring" aria-hidden="true">
+                  <svg viewBox="0 0 36 36" focusable="false">
+                    <circle class="level-chip__track" cx="18" cy="18" r="16" />
+                    <circle class="level-chip__fill" cx="18" cy="18" r="16" pathLength="100" />
+                  </svg>
+                  <span class="level-chip__number">{l.level}</span>
+                </span>
+                <span class="level-chip__name">
+                  <span class="visually-hidden">{`Level ${l.level}: `}</span>
+                  {l.name}
+                </span>
+                {l.available === 0 && <span class="level-chip__soon">Soon</span>}
               </a>
             </li>
           ))
@@ -50,6 +66,16 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
             <div class="progress" aria-hidden="true">
               <span style={`width: ${l.chapters.length ? (l.available / l.chapters.length) * 100 : 0}%`} />
             </div>
+            {l.available > 0 && (
+              <div class="reader-progress" data-slugs={l.chapters.filter(isAvailable).map((c) => c.slug).join(' ')} hidden>
+                <span class="reader-progress__cells" aria-hidden="true">
+                  {l.chapters.filter(isAvailable).map((c) => (
+                    <span class="reader-progress__cell" data-slug={c.slug} title={`${c.chapter} ${c.title}`} />
+                  ))}
+                </span>
+                <span class="reader-progress__label" />
+              </div>
+            )}
           </header>
 
           <ol class="chapter-list">
@@ -64,6 +90,14 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
                     {c.title}
                   </a>
                   <StatusTag status={c.status} />
+                  {isAvailable(c) && (
+                    <span class="row-progress" data-slug={c.slug} hidden>
+                      <span class="row-progress__track" aria-hidden="true">
+                        <span class="row-progress__fill" />
+                      </span>
+                      <span class="row-progress__value" />
+                    </span>
+                  )}
                   {c.topics.length > 0 && <p class="chapter-row__topics">{c.topics.join(' · ')}</p>}
                 </div>
               </li>
@@ -79,6 +113,11 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     }
   </div>
 </BaseLayout>
+
+<script>
+  import { initRoadmapProgress } from '../scripts/roadmap-progress';
+  initRoadmapProgress();
+</script>
 
 <style>
   .roadmap {
@@ -110,33 +149,118 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   }
 
   .level-jump ol {
-    /* Contains the visually hidden "Level" labels, so they scroll with the list instead of widening the page. */
+    /* Contains the visually hidden labels, so they scroll with the list instead of widening the page. */
     position: relative;
     display: flex;
-    gap: var(--space-1);
+    gap: var(--space-2);
     margin: 0;
     padding: 0;
     overflow-x: auto;
     list-style: none;
     scrollbar-width: none;
+    /* Fades the last chip at the edge so the strip reads as scrollable. */
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--space-8)), transparent);
   }
 
-  .level-jump a {
+  .level-jump ol::-webkit-scrollbar {
+    display: none;
+  }
+
+  .level-jump li:last-child {
+    padding-right: var(--space-8);
+  }
+
+  /* A level: its number in a ring that fills with the reader's progress, and its name. */
+  .level-chip {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-width: 2.5rem;
-    min-height: 2.5rem;
-    border-radius: var(--radius-md);
-    color: var(--color-text-muted);
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
     font-size: var(--text-sm);
     font-weight: 500;
+    white-space: nowrap;
     text-decoration: none;
   }
 
-  .level-jump a:hover {
-    background: var(--color-surface);
-    color: var(--color-text);
+  .level-chip:hover {
+    border-color: var(--color-accent);
+  }
+
+  .level-chip[aria-current='true'] {
+    border-color: var(--color-accent-ink);
+    box-shadow: inset 0 0 0 1px var(--color-accent-ink);
+  }
+
+  .level-chip.is-soon {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .level-chip {
+      transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    }
+  }
+
+  .level-chip__ring {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .level-chip__ring svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .level-chip__ring circle {
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .level-chip__track {
+    stroke: var(--color-border);
+  }
+
+  .level-chip__fill {
+    stroke: var(--color-accent-ink);
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+
+  .level-chip__number {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .level-chip.is-done .level-chip__ring {
+    border-radius: 50%;
+    background: var(--color-accent-ink);
+    color: var(--color-bg);
+  }
+
+  .level-chip__soon {
+    padding-inline: var(--space-2);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
   .level {
@@ -176,6 +300,96 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     display: block;
     height: 100%;
     background: var(--color-accent);
+  }
+
+  /* The reader's progress in a level: one cell per available chapter, filled when read. */
+  .reader-progress {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  .reader-progress[hidden] {
+    display: none;
+  }
+
+  .reader-progress__cells {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .reader-progress__cell {
+    width: 0.625rem;
+    height: 0.625rem;
+    border: 1.5px solid var(--color-accent-ink);
+    border-radius: 2px;
+    opacity: 0.45;
+  }
+
+  .reader-progress__cell[data-state='started'] {
+    background: linear-gradient(to top, var(--color-accent-ink) var(--cell-fill, 50%), transparent 0);
+    opacity: 1;
+  }
+
+  .reader-progress__cell[data-state='read'] {
+    background: var(--color-accent-ink);
+    opacity: 1;
+  }
+
+  .reader-progress__label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .reader-progress__label strong {
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  /* A chapter's progress: a slim bar with a dotted remainder, and the percentage. */
+  .row-progress {
+    display: inline-flex;
+    flex-basis: 100%;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  .row-progress[hidden] {
+    display: none;
+  }
+
+  .row-progress__track {
+    position: relative;
+    width: 7.5rem;
+    height: 0.375rem;
+    border-radius: 999px;
+    background: radial-gradient(circle, var(--color-border) 1px, transparent 1.2px) 0 50% / 4px 4px;
+    overflow: hidden;
+  }
+
+  .row-progress__fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--color-accent-ink);
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left center;
+  }
+
+  .row-progress__value {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row-progress[data-state='read'] .row-progress__value {
+    color: var(--color-accent-ink);
+    font-weight: 500;
   }
 
   .chapter-list {
