@@ -77,7 +77,7 @@ Systemly is a PWA: it can be installed from the browser ("Add to Home Screen" / 
 - Each build writes `dist/sw.js` with a version hash of the worker code and every saved file; a new version replaces the old cache automatically.
 - The service worker is registered only in production builds (`npm run build` + `npm run preview` to test locally).
 
-The favicon (`public/favicon-32.png`, `favicon-48.png`) and app icons (`public/icons/`) are generated from `app-icon.png`, the brand mark, placed on white: `node scripts/generate-icons.mjs`.
+The favicon (`public/favicon-32.png`, `favicon-48.png`) and app icons (`public/icons/`) are generated from `favicon.png`, the panda mark on white: `node scripts/generate-icons.mjs`.
 
 ## Architecture Advisor
 

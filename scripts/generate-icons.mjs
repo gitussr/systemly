@@ -1,9 +1,9 @@
-// Generates the favicon and app icons from app-icon.png (the brand mark, transparent 512×512).
+// Generates the favicon and app icons from favicon.png (the panda mark on white, 512×512).
 // The mark is placed on white so it stays visible on dark tab bars and home screens.
 // Run: node scripts/generate-icons.mjs
 import sharp from 'sharp';
 
-const SOURCE = 'app-icon.png';
+const SOURCE = 'favicon.png';
 const WHITE = { r: 255, g: 255, b: 255, alpha: 1 };
 
 /**
