@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activeSection, readingMinutes, readingProgress, timeLeftLabel } from '../src/lib/reading/progress';
-import { chapterState, groupSummary, loadLog, parseLog, recordProgress } from '../src/lib/reading/store';
+import { chapterState, currentGroupIndex, groupSummary, loadLog, parseLog, recordProgress } from '../src/lib/reading/store';
 
 describe('readingProgress', () => {
   it('runs from the article top at the viewport top to its bottom at the viewport bottom', () => {
@@ -80,5 +80,15 @@ describe('reading log', () => {
     expect(chapterState(0.96)).toBe('read');
     expect(groupSummary(['a', 'b', 'c', 'd'], { a: 1, b: 0.5, c: 0.97 })).toEqual({ read: 2, total: 4, percent: 50 });
     expect(groupSummary([], {})).toEqual({ read: 0, total: 0, percent: 0 });
+  });
+
+  it('finds the level the reader is working through', () => {
+    const levels = [['a', 'b'], [], ['c'], ['d']];
+    expect(currentGroupIndex(levels, {})).toBe(0);
+    expect(currentGroupIndex(levels, { a: 1, b: 0.5 })).toBe(0);
+    // Level 1 has no available chapters, so it is skipped.
+    expect(currentGroupIndex(levels, { a: 1, b: 1 })).toBe(2);
+    expect(currentGroupIndex(levels, { a: 1, b: 1, c: 1, d: 1 })).toBe(3);
+    expect(currentGroupIndex([[], []], {})).toBe(0);
   });
 });

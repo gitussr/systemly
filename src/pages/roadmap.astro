@@ -18,7 +18,10 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
       <p class="page-header__lede">
         {`${levels.length} levels, from foundations to real-world system design. ${available} of ${total} chapters are available; the rest are in preparation.`}
       </p>
-      <AvailabilityFilter />
+      <div class="roadmap-controls">
+        <AvailabilityFilter />
+        <button type="button" class="expand-all" aria-pressed="false" hidden>Expand all</button>
+      </div>
     </header>
 
     <nav class="level-jump" aria-label="Levels">
@@ -55,59 +58,65 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     {
       levels.map((l) => (
         <section class="level" id={`level-${l.level}`} aria-labelledby={`level-${l.level}-title`}>
-          <header class="level__header">
-            <h2 id={`level-${l.level}-title`}>
-              <span class="level__number">Level {l.level}</span>
-              {l.name}
-            </h2>
-            <p class="level__progress">
-              {l.available} of {l.chapters.length} available
-            </p>
-            <div class="progress" aria-hidden="true">
-              <span style={`width: ${l.chapters.length ? (l.available / l.chapters.length) * 100 : 0}%`} />
-            </div>
-            {l.available > 0 && (
-              <div class="reader-progress" data-slugs={l.chapters.filter(isAvailable).map((c) => c.slug).join(' ')} hidden>
-                <span class="reader-progress__cells" aria-hidden="true">
-                  {l.chapters.filter(isAvailable).map((c) => (
-                    <span class="reader-progress__cell" data-slug={c.slug} title={`${c.chapter} ${c.title}`} />
-                  ))}
+          {/* Levels fold away so the roadmap stays short; Level 0 starts open, and the script opens the reader's current level instead. */}
+          <details class="level__details" open={l.level === levels[0].level} data-slugs={l.chapters.filter(isAvailable).map((c) => c.slug).join(' ')}>
+            <summary class="level__summary">
+              <h2 id={`level-${l.level}-title`}>
+                <span class="level__number">Level {l.level}</span>
+                {l.name}
+              </h2>
+              <svg class="level__chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+              <span class="level__progress">
+                {l.available} of {l.chapters.length} available
+              </span>
+              <span class="progress" aria-hidden="true">
+                <span style={`width: ${l.chapters.length ? (l.available / l.chapters.length) * 100 : 0}%`} />
+              </span>
+              {l.available > 0 && (
+                <span class="reader-progress" data-slugs={l.chapters.filter(isAvailable).map((c) => c.slug).join(' ')} hidden>
+                  <span class="reader-progress__cells" aria-hidden="true">
+                    {l.chapters.filter(isAvailable).map((c) => (
+                      <span class="reader-progress__cell" data-slug={c.slug} title={`${c.chapter} ${c.title}`} />
+                    ))}
+                  </span>
+                  <span class="reader-progress__label" />
                 </span>
-                <span class="reader-progress__label" />
-              </div>
-            )}
-          </header>
+              )}
+            </summary>
 
-          <ol class="chapter-list">
-            {l.chapters.map((c) => (
-              <li class="chapter-row" data-status={c.status}>
-                <span class="chapter-row__number">{c.chapter}</span>
-                <div class="chapter-row__body">
-                  <a
-                    class:list={['chapter-row__title', { 'is-muted': !isAvailable(c) }]}
-                    href={chapterHref(c.slug)}
-                  >
-                    {c.title}
-                  </a>
-                  <StatusTag status={c.status} />
-                  {isAvailable(c) && (
-                    <span class="row-progress" data-slug={c.slug} hidden>
-                      <span class="row-progress__track" aria-hidden="true">
-                        <span class="row-progress__fill" />
+            <ol class="chapter-list">
+              {l.chapters.map((c) => (
+                <li class="chapter-row" data-status={c.status}>
+                  <span class="chapter-row__number">{c.chapter}</span>
+                  <div class="chapter-row__body">
+                    <a
+                      class:list={['chapter-row__title', { 'is-muted': !isAvailable(c) }]}
+                      href={chapterHref(c.slug)}
+                    >
+                      {c.title}
+                    </a>
+                    <StatusTag status={c.status} />
+                    {isAvailable(c) && (
+                      <span class="row-progress" data-slug={c.slug} hidden>
+                        <span class="row-progress__track" aria-hidden="true">
+                          <span class="row-progress__fill" />
+                        </span>
+                        <span class="row-progress__value" />
                       </span>
-                      <span class="row-progress__value" />
-                    </span>
-                  )}
-                  {c.topics.length > 0 && <p class="chapter-row__topics">{c.topics.join(' · ')}</p>}
-                </div>
-              </li>
-            ))}
-          </ol>
-          {l.available === 0 && (
-            <p class="level__empty" data-when-filtered>
-              No chapters in this level are available yet.
-            </p>
-          )}
+                    )}
+                    {c.topics.length > 0 && <p class="chapter-row__topics">{c.topics.join(' · ')}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {l.available === 0 && (
+              <p class="level__empty" data-when-filtered>
+                No chapters in this level are available yet.
+              </p>
+            )}
+          </details>
         </section>
       ))
     }
@@ -136,6 +145,35 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   .page-header__lede {
     margin: var(--space-3) 0 var(--space-2);
     color: var(--color-text-muted);
+  }
+
+  .roadmap-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .expand-all {
+    min-height: 2.75rem;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .expand-all:hover {
+    border-color: var(--color-accent);
+  }
+
+  .expand-all[hidden] {
+    display: none;
   }
 
   .level-jump {
@@ -265,16 +303,70 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
 
   .level {
     max-width: var(--measure);
-    padding-top: var(--space-8);
+    border-bottom: 1px solid var(--color-border);
     scroll-margin-top: 4rem;
   }
 
-  .level__header h2 {
+  /* The whole level header is the toggle: name, availability and the reader's progress stay visible when folded. */
+  .level__summary {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    column-gap: var(--space-3);
+    padding-block: var(--space-5);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .level__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .level__summary > :not(h2, .level__chevron) {
+    grid-column: 1 / -1;
+  }
+
+  .level__summary:focus-visible {
+    outline: 2px solid var(--color-accent-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .level__summary h2 {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
     margin: 0;
     font-size: var(--text-xl);
+  }
+
+  .level__summary:hover h2 {
+    color: var(--color-accent-ink);
+  }
+
+  .level__chevron {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: var(--space-4);
+    fill: none;
+    stroke: var(--color-text-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .level__details[open] .level__chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .level__chevron {
+      transition: transform var(--duration-fast) ease;
+    }
+  }
+
+  .level__details[open] > :last-child {
+    margin-bottom: var(--space-6);
   }
 
   .level__number {
@@ -284,12 +376,14 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   }
 
   .level__progress {
+    display: block;
     margin: var(--space-2) 0 var(--space-2);
     color: var(--color-text-muted);
     font-size: var(--text-sm);
   }
 
   .progress {
+    display: block;
     height: 4px;
     border-radius: 2px;
     background: var(--color-border);
@@ -393,7 +487,7 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   }
 
   .chapter-list {
-    margin: var(--space-4) 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
   }

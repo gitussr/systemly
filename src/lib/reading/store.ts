@@ -71,3 +71,18 @@ export function groupSummary(slugs: readonly string[], log: ReadingLog): { read:
   const read = slugs.filter((slug) => chapterState(log[slug]) === 'read').length;
   return { read, total, percent: total ? Math.round((read / total) * 100) : 0 };
 }
+
+/**
+ * The group (e.g. a level) the reader is working through: the first one with an available
+ * chapter not yet read. Groups without chapters are skipped; once everything is read it is
+ * the last group with chapters, and with nothing read at all it is the first.
+ */
+export function currentGroupIndex(groups: readonly (readonly string[])[], log: ReadingLog): number {
+  let last = -1;
+  for (const [index, slugs] of groups.entries()) {
+    if (slugs.length === 0) continue;
+    if (slugs.some((slug) => chapterState(log[slug]) !== 'read')) return index;
+    last = index;
+  }
+  return Math.max(last, 0);
+}

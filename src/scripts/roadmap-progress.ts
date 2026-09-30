@@ -7,15 +7,57 @@
  *   "2 of 14 read · 14%"; each chapter row shows a slim bar and its percentage.
  *   Nothing is shown until the reader has started at least one chapter.
  * - The chip for the level on screen is highlighted and kept in view in the strip.
+ * - Levels are folded: the reader's current level opens (Level 0 before any reading),
+ *   a level chip or a #level-N link opens its level, and "Expand all" opens every level.
  */
-import { chapterState, groupSummary, loadLog, type ReadingLog } from '../lib/reading/store';
+import { chapterState, currentGroupIndex, groupSummary, loadLog, type ReadingLog } from '../lib/reading/store';
 
 const slugsOf = (el: HTMLElement) => (el.dataset.slugs ?? '').split(' ').filter(Boolean);
 
 export function initRoadmapProgress(): void {
   const log = loadLog();
   if (Object.keys(log).length > 0) showProgress(log);
+  foldLevels(log);
   followLevels();
+}
+
+function foldLevels(log: ReadingLog): void {
+  const levels = [...document.querySelectorAll<HTMLDetailsElement>('details.level__details')];
+  if (levels.length === 0) return;
+
+  const openLevel = (id: string) => {
+    const details = document.getElementById(id)?.querySelector<HTMLDetailsElement>('details.level__details');
+    if (details) details.open = true;
+  };
+
+  // A link to a level opens it (and leaves the rest as they are, so the target does not move);
+  // otherwise the level the reader is working through replaces Level 0 as the open one.
+  if (location.hash.startsWith('#level-')) openLevel(location.hash.slice(1));
+  else if (Object.keys(log).length > 0) {
+    const current = currentGroupIndex(levels.map(slugsOf), log);
+    levels.forEach((details, index) => (details.open = index === current));
+  }
+
+  // Opens before the browser follows the link, so it scrolls to the opened level.
+  for (const chip of document.querySelectorAll<HTMLElement>('.level-chip')) {
+    chip.addEventListener('click', () => openLevel(`level-${chip.dataset.level}`));
+  }
+  addEventListener('hashchange', () => openLevel(location.hash.slice(1)));
+
+  const toggle = document.querySelector<HTMLButtonElement>('.expand-all');
+  if (!toggle) return;
+  const sync = () => {
+    const allOpen = levels.every((details) => details.open);
+    toggle.textContent = allOpen ? 'Collapse all' : 'Expand all';
+    toggle.setAttribute('aria-pressed', String(allOpen));
+  };
+  toggle.addEventListener('click', () => {
+    const open = !levels.every((details) => details.open);
+    for (const details of levels) details.open = open;
+  });
+  for (const details of levels) details.addEventListener('toggle', sync);
+  sync();
+  toggle.hidden = false;
 }
 
 function showProgress(log: ReadingLog): void {
