@@ -245,6 +245,56 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Optional meter bar and status message; the tone colours match the callout bars. */
+.prose .calculator__meter {
+  height: 0.75rem;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.prose .calculator__meter-fill {
+  --tone: var(--color-accent);
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tone);
+  transition: width var(--duration-fast) ease-out;
+}
+
+.prose .calculator__band {
+  --tone: var(--color-accent);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--space-2);
+  font-weight: 500;
+}
+
+.prose .calculator__band::before {
+  content: '';
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--tone);
+}
+
+.prose .calculator [data-tone='warning'] {
+  --tone: #c9a227;
+}
+
+.prose .calculator [data-tone='danger'] {
+  --tone: #c0504d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prose .calculator__meter-fill {
+    transition: none;
+  }
+}
+
 /* Before rendering (or without JavaScript) the source is shown as plain text. */
 .prose .diagram__fallback {
   margin: 0;

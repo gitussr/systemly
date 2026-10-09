@@ -7,6 +7,9 @@
  *     …title, one labelled slider per input, the result and the formula…
  *   </figure>
  *
+ * Optional extras: a unit after the result, a `meter` bar under it and status `bands`
+ * (a message per result range, e.g. "Demand exceeds capacity" above 100%).
+ *
  * The page is rendered with the starting values and their result, so without JavaScript it
  * still reads as a worked example; the sliders are `hidden` until src/scripts/calculators.ts
  * shows them and keeps the numbers up to date. An invalid block fails the build.
@@ -17,11 +20,13 @@ import type { Element, ElementContent, Root, RootContent } from 'hast';
 import type { VFile } from 'vfile';
 import {
   FORMULA_PLACEHOLDER,
+  bandFor,
   compute,
   formatFormula,
   formatInput,
   formatResult,
   initialValues,
+  meterWidth,
   type CalculatorConfig,
 } from './calculator-model';
 
@@ -40,6 +45,16 @@ const inputSchema = z
   .refine((i) => i.min < i.max, { message: 'min must be less than max' })
   .refine((i) => i.value >= i.min && i.value <= i.max, { message: 'value must be between min and max' });
 
+const bandSchema = z
+  .object({
+    below: z.number().optional(),
+    upTo: z.number().optional(),
+    tone: z.enum(['success', 'warning', 'danger']),
+    message: z.string().min(1),
+  })
+  .strict()
+  .refine((b) => b.below === undefined || b.upTo === undefined, { message: 'use either below or upTo, not both' });
+
 const configSchema = z
   .object({
     title: z.string().min(1),
@@ -50,8 +65,11 @@ const configSchema = z
         label: z.string().min(1),
         operation: z.literal('product'),
         digits: z.number().int().min(0).max(6).default(1),
+        unit: z.string().min(1).optional(),
       })
       .strict(),
+    meter: z.number().positive().optional(),
+    bands: z.array(bandSchema).min(2).optional(),
     formula: z.string().min(1).optional(),
     caption: z.string().min(1).optional(),
   })
@@ -63,6 +81,17 @@ const configSchema = z
     for (const [, id] of (config.formula ?? '').matchAll(FORMULA_PLACEHOLDER)) {
       if (!ids.includes(id!)) ctx.addIssue({ code: 'custom', message: `formula uses {${id}}, which is not an input id` });
     }
+    const bands = config.bands ?? [];
+    const limits = bands.map((b) => b.below ?? b.upTo);
+    if (bands.length && limits.at(-1) !== undefined) {
+      ctx.addIssue({ code: 'custom', message: 'the last band takes every remaining value, so it has no below or upTo' });
+    }
+    limits.slice(0, -1).forEach((limit, n) => {
+      if (limit === undefined) ctx.addIssue({ code: 'custom', message: `bands.${n} needs below or upTo` });
+      else if (n > 0 && limits[n - 1] !== undefined && limit <= limits[n - 1]!) {
+        ctx.addIssue({ code: 'custom', message: `bands.${n} must start above the band before it` });
+      }
+    });
   });
 
 export function parseCalculator(source: string): CalculatorConfig {
@@ -148,12 +177,24 @@ function renderCalculator(config: CalculatorConfig, id: string): Element {
     );
   }
 
+  const total = compute(config, values);
   const result: Element[] = [
     el('p', { className: ['calculator__result-label'] }, [config.result.label]),
     el('output', { className: ['calculator__result-value'], ariaLive: 'polite', dataResult: '' }, [
-      formatResult(config, compute(config, values)),
+      formatResult(config, total),
     ]),
   ];
+  const band = bandFor(config, total);
+  if (config.meter) {
+    result.push(
+      el('div', { className: ['calculator__meter'], ariaHidden: 'true' }, [
+        el('span', { className: ['calculator__meter-fill'], dataMeter: '', dataTone: band?.tone, style: `width: ${meterWidth(config, total)}` }),
+      ]),
+    );
+  }
+  if (band) {
+    result.push(el('p', { className: ['calculator__band'], ariaLive: 'polite', dataBand: '', dataTone: band.tone }, [band.message]));
+  }
   if (config.formula) {
     result.push(el('p', { className: ['calculator__formula'], dataFormula: '' }, [formatFormula(config, values)]));
   }

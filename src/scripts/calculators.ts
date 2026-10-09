@@ -4,11 +4,13 @@
  * starting values and their result (rendered at build time by rehypeCalculators).
  */
 import {
+  bandFor,
   compute,
   formatFormula,
   formatInput,
   formatResult,
   initialValues,
+  meterWidth,
   type CalculatorConfig,
 } from '../lib/markdown/calculator-model';
 
@@ -18,10 +20,22 @@ export function initCalculators(): void {
     const values = initialValues(config);
     const result = figure.querySelector<HTMLOutputElement>('[data-result]');
     const formula = figure.querySelector<HTMLElement>('[data-formula]');
+    const meter = figure.querySelector<HTMLElement>('[data-meter]');
+    const status = figure.querySelector<HTMLElement>('[data-band]');
 
     const update = () => {
-      if (result) result.textContent = formatResult(config, compute(config, values));
+      const total = compute(config, values);
+      const band = bandFor(config, total);
+      if (result) result.textContent = formatResult(config, total);
       if (formula) formula.textContent = formatFormula(config, values);
+      if (meter) {
+        meter.style.width = meterWidth(config, total);
+        if (band) meter.dataset.tone = band.tone;
+      }
+      if (status && band) {
+        status.textContent = band.message;
+        status.dataset.tone = band.tone;
+      }
     };
 
     for (const input of config.inputs) {

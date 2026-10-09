@@ -28,10 +28,28 @@ export interface CalculatorConfig {
     operation: 'product';
     /** Maximum decimal places shown in the result. */
     digits: number;
+    /** Shown after the result, e.g. "%". */
+    unit?: string;
   };
+  /** Draws a bar under the result that is full when the result reaches this value. */
+  meter?: number;
+  /**
+   * Status messages by result range, checked in order: a band applies when the result is
+   * below `below` (exclusive) or at most `upTo` (inclusive); the last band has neither.
+   */
+  bands?: CalculatorBand[];
   /** Shown under the result; `{id}` is replaced by that input's value after its divisor. */
   formula?: string;
   caption?: string;
+}
+
+export type CalculatorTone = 'success' | 'warning' | 'danger';
+
+export interface CalculatorBand {
+  below?: number;
+  upTo?: number;
+  tone: CalculatorTone;
+  message: string;
 }
 
 export type CalculatorValues = Record<string, number>;
@@ -55,13 +73,36 @@ function plain(value: number): string {
   return value.toLocaleString('en-US', { maximumFractionDigits: 6, useGrouping: false });
 }
 
+/** "500 ms", but "80%": a percent sign follows the number directly. */
+function withUnit(number: string, unit: string | undefined): string {
+  if (!unit) return number;
+  return unit === '%' ? `${number}%` : `${number} ${unit}`;
+}
+
 /** An input's current value with its unit, e.g. "500 ms". */
 export function formatInput(input: CalculatorInput, value: number): string {
-  return `${plain(value)} ${input.unit}`;
+  return withUnit(plain(value), input.unit);
 }
 
 export function formatResult(config: CalculatorConfig, value: number): string {
-  return value.toLocaleString('en-US', { maximumFractionDigits: config.result.digits });
+  return withUnit(value.toLocaleString('en-US', { maximumFractionDigits: config.result.digits }), config.result.unit);
+}
+
+/** The band whose range holds the result, if the calculator has bands. */
+export function bandFor(config: CalculatorConfig, value: number): CalculatorBand | undefined {
+  return config.bands?.find(
+    (band) => (band.below === undefined || value < band.below) && (band.upTo === undefined || value <= band.upTo),
+  );
+}
+
+/** How full the meter bar is, from 0 to 1. */
+export function meterFraction(config: CalculatorConfig, value: number): number {
+  return config.meter ? Math.min(Math.max(value / config.meter, 0), 1) : 0;
+}
+
+/** The meter fill width as a CSS percentage, e.g. "80%". */
+export function meterWidth(config: CalculatorConfig, value: number): string {
+  return `${plain(Math.round(meterFraction(config, value) * 1000) / 10)}%`;
 }
 
 export function formatFormula(config: CalculatorConfig, values: CalculatorValues): string {

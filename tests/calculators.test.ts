@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { MarkdownRenderer } from '@astrojs/markdown-remark';
 import { markdownProcessor, sharedMarkdownOptions } from '../src/lib/markdown/config';
 import { parseCalculator } from '../src/lib/markdown/calculators';
-import { compute, formatFormula, formatInput, formatResult, initialValues } from '../src/lib/markdown/calculator-model';
+import { bandFor, compute, formatFormula, formatInput, formatResult, initialValues, meterWidth } from '../src/lib/markdown/calculator-model';
 
 let renderer: MarkdownRenderer;
 
@@ -82,4 +82,54 @@ describe('calculators', () => {
     expect(formatFormula(config, values)).toBe('1000 × 0.35 seconds');
     expect(formatInput(config.inputs[1]!, 350)).toBe('350 ms');
   });
+
+  it('shows a meter and the status band for the result', async () => {
+    const out = await html(block(UTILIZATION));
+    expect(out).toMatch(/<output class="calculator__result-value"[^>]*>80%<\/output>/);
+    expect(out).toMatch(/<output class="calculator__value"[^>]*>80%<\/output>/);
+    expect(out).toContain('<div class="calculator__meter" aria-hidden="true"><span class="calculator__meter-fill" data-meter="" data-tone="warning" style="width: 80%"></span></div>');
+    expect(out).toContain('<p class="calculator__band" aria-live="polite" data-band="" data-tone="warning">Busy.</p>');
+  });
+
+  it('picks bands by below (exclusive) and upTo (inclusive), and caps the meter', () => {
+    const config = parseCalculator(UTILIZATION);
+    expect(bandFor(config, 70)?.message).toBe('Headroom.');
+    expect(bandFor(config, 80)?.message).toBe('Busy.');
+    expect(bandFor(config, 100)?.message).toBe('Busy.');
+    expect(bandFor(config, 110)?.message).toBe('Over.');
+    expect(meterWidth(config, 200)).toBe('100%');
+    expect(meterWidth(config, 10)).toBe('10%');
+  });
+
+  it('rejects bands that are out of order or unbounded too early', () => {
+    expect(() => parseCalculator(UTILIZATION.replace('upTo: 100', 'upTo: 50'))).toThrow(/bands\.1 must start above/);
+    expect(() => parseCalculator(`${UTILIZATION}\n    upTo: 300`)).toThrow(/last band/);
+    expect(() => parseCalculator(UTILIZATION.replace('    below: 80\n', ''))).toThrow(/bands\.0 needs below or upTo/);
+    expect(() => parseCalculator(UTILIZATION.replace('tone: danger', 'tone: red'))).toThrow(/tone/);
+  });
 });
+
+const UTILIZATION = `title: Utilization
+inputs:
+  - id: demand
+    label: Workload demand
+    unit: "%"
+    min: 10
+    max: 200
+    step: 10
+    value: 80
+result:
+  label: Demand relative to capacity
+  operation: product
+  digits: 0
+  unit: "%"
+meter: 100
+bands:
+  - tone: success
+    message: Headroom.
+    below: 80
+  - tone: warning
+    message: Busy.
+    upTo: 100
+  - tone: danger
+    message: Over.`;

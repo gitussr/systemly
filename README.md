@@ -288,6 +288,29 @@ caption: This is an average, not a maximum capacity estimate.        # optional
 ```
 ````
 
+A calculator can also show a unit after the result, a bar under it and a status message for each range of results (all optional; `%` follows the number with no space):
+
+````markdown
+```calculator
+…
+result:
+  label: Demand relative to capacity
+  operation: product
+  digits: 0
+  unit: "%"
+meter: 100                    # the bar is full when the result reaches 100
+bands:                        # checked in order; the first that holds the result is shown
+  - below: 80                 # result < 80
+    tone: success             # success, warning or danger: colours the bar and the dot
+    message: Illustrative headroom remains.
+  - upTo: 100                 # result ≤ 100
+    tone: warning
+    message: Capacity is becoming more heavily utilized.
+  - tone: danger              # the last band takes every remaining value
+    message: Demand exceeds capacity. Work may queue, slow down, or fail.
+```
+````
+
 The page is built with the starting values and their result, so without JavaScript it reads as a worked example; the calculator script loads only on pages that have one. The build rejects unknown fields, a starting value outside its range and formula placeholders that are not input ids.
 
 ### Components from other editors
