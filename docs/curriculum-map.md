@@ -418,19 +418,19 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 
 # LEVEL 10 — Observability
 
-### 10.01 — Why Observability Matters
+### 10.01 — Observability Fundamentals
 
-### 10.02 — Logs
+### 10.02 — Metrics
 
-### 10.03 — Structured Logging
+### 10.03 — Logs
 
-### 10.04 — Metrics
+### 10.04 — Distributed Tracing
 
-### 10.05 — Traces
+### 10.05 — Dashboards
 
-### 10.06 — Correlation IDs
+### 10.06 — Alerting
 
-### 10.07 — Distributed Tracing
+### 10.07 — Log Aggregation
 
 ### 10.08 — Latency Percentiles
 
