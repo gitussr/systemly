@@ -311,6 +311,25 @@ bands:                        # checked in order; the first that holds the resul
 ```
 ````
 
+For a rate such as a success-rate SLI, `operation: percentage` gives the first of exactly two inputs as a percentage of the second. An input can carry `atMost: <input id>` so it never exceeds that input: its slider's maximum follows the other value, and a larger value counts as equal to it:
+
+````markdown
+```calculator
+…
+inputs:
+  - id: successful
+    …
+    atMost: eligible          # successful requests ≤ eligible requests
+  - id: eligible
+    …
+result:
+  label: Observed request success-rate SLI
+  operation: percentage       # successful ÷ eligible × 100
+  digits: 3
+  unit: "%"
+```
+````
+
 The page is built with the starting values and their result, so without JavaScript it reads as a worked example; the calculator script loads only on pages that have one. The build rejects unknown fields, a starting value outside its range and formula placeholders that are not input ids.
 
 ### Components from other editors

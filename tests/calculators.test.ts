@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import type { MarkdownRenderer } from '@astrojs/markdown-remark';
 import { markdownProcessor, sharedMarkdownOptions } from '../src/lib/markdown/config';
 import { parseCalculator } from '../src/lib/markdown/calculators';
-import { bandFor, compute, formatFormula, formatInput, formatResult, initialValues, meterWidth } from '../src/lib/markdown/calculator-model';
+import { bandFor, compute, formatFormula, formatInput, formatResult, initialValues, maxFor, meterWidth } from '../src/lib/markdown/calculator-model';
 
 let renderer: MarkdownRenderer;
 
@@ -107,7 +107,51 @@ describe('calculators', () => {
     expect(() => parseCalculator(UTILIZATION.replace('    below: 80\n', ''))).toThrow(/bands\.0 needs below or upTo/);
     expect(() => parseCalculator(UTILIZATION.replace('tone: danger', 'tone: red'))).toThrow(/tone/);
   });
+
+  it('gives the first input as a percentage of the second, capped by atMost', async () => {
+    const config = parseCalculator(SUCCESS);
+    expect(formatResult(config, compute(config, initialValues(config)))).toBe('99.8%');
+    expect(compute(config, { good: 500, total: 1000 })).toBe(50);
+    // successful requests above the eligible total count as the total, never above 100%
+    expect(compute(config, { good: 9000, total: 1000 })).toBe(100);
+    expect(maxFor(config, config.inputs[0]!, { good: 9000, total: 1000 })).toBe(1000);
+    expect(formatFormula(config, { good: 9000, total: 1000 })).toBe('1000 of 1000');
+    const out = await html(block(SUCCESS));
+    expect(out).toMatch(/<output class="calculator__result-value"[^>]*>99\.8%<\/output>/);
+    expect(/<input[^>]*id="calculator-1-good"[^>]*>/.exec(out)?.[0]).toContain('max="10000"');
+  });
+
+  it('rejects a percentage without two inputs and a bad atMost', () => {
+    expect(() => parseCalculator(UTILIZATION.replace('operation: product', 'operation: percentage'))).toThrow(/exactly two inputs/);
+    expect(() => parseCalculator(SUCCESS.replace('atMost: total', 'atMost: good'))).toThrow(/inputs\.0: atMost must name another input/);
+    expect(() => parseCalculator(SUCCESS.replace('atMost: total', 'atMost: eligible'))).toThrow(/atMost must name another input/);
+    expect(() => parseCalculator(SUCCESS.replace('value: 10000', 'value: 5000'))).toThrow(/inputs\.0: value must not exceed total/);
+  });
 });
+
+const SUCCESS = `title: Success rate
+inputs:
+  - id: good
+    label: Successful requests
+    unit: requests
+    min: 0
+    max: 10000
+    step: 10
+    value: 9980
+    atMost: total
+  - id: total
+    label: Eligible requests
+    unit: requests
+    min: 100
+    max: 10000
+    step: 100
+    value: 10000
+result:
+  label: Success rate
+  operation: percentage
+  digits: 3
+  unit: "%"
+formula: "{good} of {total}"`;
 
 const UTILIZATION = `title: Utilization
 inputs:

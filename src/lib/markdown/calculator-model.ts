@@ -16,6 +16,8 @@ export interface CalculatorInput {
   value: number;
   /** The value is divided by this before it is used, e.g. 1000 to turn ms into seconds. */
   divisor: number;
+  /** Id of another input this value may not exceed (successful requests ≤ eligible requests). */
+  atMost?: string;
 }
 
 export interface CalculatorConfig {
@@ -24,8 +26,11 @@ export interface CalculatorConfig {
   inputs: CalculatorInput[];
   result: {
     label: string;
-    /** How the inputs combine. Only multiplication is needed so far. */
-    operation: 'product';
+    /**
+     * How the inputs combine: `product` multiplies them; `percentage` gives the first of two
+     * inputs as a percentage of the second.
+     */
+    operation: 'product' | 'percentage';
     /** Maximum decimal places shown in the result. */
     digits: number;
     /** Shown after the result, e.g. "%". */
@@ -60,12 +65,24 @@ export function initialValues(config: CalculatorConfig): CalculatorValues {
   return Object.fromEntries(config.inputs.map((input) => [input.id, input.value]));
 }
 
-function scaled(input: CalculatorInput, values: CalculatorValues): number {
-  return (values[input.id] ?? input.value) / input.divisor;
+function raw(input: CalculatorInput, values: CalculatorValues): number {
+  return values[input.id] ?? input.value;
+}
+
+/** The highest value an input may take: its max, or less while an `atMost` input is lower. */
+export function maxFor(config: CalculatorConfig, input: CalculatorInput, values: CalculatorValues): number {
+  const limit = input.atMost ? config.inputs.find((i) => i.id === input.atMost) : undefined;
+  return limit ? Math.min(input.max, raw(limit, values)) : input.max;
+}
+
+function scaled(config: CalculatorConfig, input: CalculatorInput, values: CalculatorValues): number {
+  return Math.min(raw(input, values), maxFor(config, input, values)) / input.divisor;
 }
 
 export function compute(config: CalculatorConfig, values: CalculatorValues): number {
-  return config.inputs.reduce((total, input) => total * scaled(input, values), 1);
+  const [first, second] = config.inputs.map((input) => scaled(config, input, values));
+  if (config.result.operation === 'percentage') return second ? (first! / second) * 100 : 0;
+  return config.inputs.reduce((total, input) => total * scaled(config, input, values), 1);
 }
 
 /** A plain number without grouping; up to six decimals hides floating-point noise. */
@@ -110,6 +127,6 @@ export function formatFormula(config: CalculatorConfig, values: CalculatorValues
   const byId = new Map(config.inputs.map((input) => [input.id, input]));
   return config.formula.replace(FORMULA_PLACEHOLDER, (match, id: string) => {
     const input = byId.get(id);
-    return input ? plain(scaled(input, values)) : match;
+    return input ? plain(scaled(config, input, values)) : match;
   });
 }

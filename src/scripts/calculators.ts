@@ -10,6 +10,7 @@ import {
   formatInput,
   formatResult,
   initialValues,
+  maxFor,
   meterWidth,
   type CalculatorConfig,
 } from '../lib/markdown/calculator-model';
@@ -38,16 +39,31 @@ export function initCalculators(): void {
       }
     };
 
-    for (const input of config.inputs) {
-      const slider = figure.querySelector<HTMLInputElement>(`input[data-input="${input.id}"]`);
+    const show = (input: CalculatorConfig['inputs'][number], slider: HTMLInputElement) => {
+      const text = formatInput(input, slider.valueAsNumber);
+      slider.setAttribute('aria-valuetext', text);
       const shown = figure.querySelector<HTMLOutputElement>(`[data-value-for="${input.id}"]`);
+      if (shown) shown.textContent = text;
+    };
+    const sliderFor = (id: string) => figure.querySelector<HTMLInputElement>(`input[data-input="${id}"]`);
+
+    for (const input of config.inputs) {
+      const slider = sliderFor(input.id);
       if (!slider) continue;
       slider.hidden = false;
       slider.addEventListener('input', () => {
         values[input.id] = slider.valueAsNumber;
-        const text = formatInput(input, slider.valueAsNumber);
-        slider.setAttribute('aria-valuetext', text);
-        if (shown) shown.textContent = text;
+        show(input, slider);
+        // Inputs capped by this one (atMost) get a new max, which also lowers their value.
+        for (const capped of config.inputs.filter((i) => i.atMost === input.id)) {
+          const other = sliderFor(capped.id);
+          if (!other) continue;
+          other.max = String(maxFor(config, capped, values));
+          if (other.valueAsNumber !== values[capped.id]) {
+            values[capped.id] = other.valueAsNumber;
+            show(capped, other);
+          }
+        }
         update();
       });
     }

@@ -26,6 +26,7 @@ import {
   formatInput,
   formatResult,
   initialValues,
+  maxFor,
   meterWidth,
   type CalculatorConfig,
 } from './calculator-model';
@@ -40,6 +41,7 @@ const inputSchema = z
     step: z.number().positive(),
     value: z.number(),
     divisor: z.number().positive().default(1),
+    atMost: z.string().optional(),
   })
   .strict()
   .refine((i) => i.min < i.max, { message: 'min must be less than max' })
@@ -63,7 +65,7 @@ const configSchema = z
     result: z
       .object({
         label: z.string().min(1),
-        operation: z.literal('product'),
+        operation: z.enum(['product', 'percentage']),
         digits: z.number().int().min(0).max(6).default(1),
         unit: z.string().min(1).optional(),
       })
@@ -78,6 +80,15 @@ const configSchema = z
     const ids = config.inputs.map((i) => i.id);
     const duplicate = ids.find((id, n) => ids.indexOf(id) !== n);
     if (duplicate) ctx.addIssue({ code: 'custom', message: `input id "${duplicate}" is used twice` });
+    if (config.result.operation === 'percentage' && config.inputs.length !== 2) {
+      ctx.addIssue({ code: 'custom', message: 'a percentage needs exactly two inputs (part, then whole)' });
+    }
+    config.inputs.forEach((input, n) => {
+      if (input.atMost === undefined) return;
+      const limit = config.inputs.find((i) => i.id === input.atMost);
+      if (!limit || limit === input) ctx.addIssue({ code: 'custom', message: `inputs.${n}: atMost must name another input id` });
+      else if (input.value > limit.value) ctx.addIssue({ code: 'custom', message: `inputs.${n}: value must not exceed ${limit.id}` });
+    });
     for (const [, id] of (config.formula ?? '').matchAll(FORMULA_PLACEHOLDER)) {
       if (!ids.includes(id!)) ctx.addIssue({ code: 'custom', message: `formula uses {${id}}, which is not an input id` });
     }
@@ -166,7 +177,7 @@ function renderCalculator(config: CalculatorConfig, id: string): Element {
           type: 'range',
           id: inputId,
           min: String(input.min),
-          max: String(input.max),
+          max: String(maxFor(config, input, values)),
           step: String(input.step),
           value: String(input.value),
           ariaValueText: shown,
