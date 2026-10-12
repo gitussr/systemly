@@ -1,0 +1,25 @@
+title: Keep connections stateful and messages in an ordered log
+status: approved
+priority: 5
+when:
+  appType: [realtime]
+sections:
+  why:
+    - text: "Real-time features need the server to push data, usually over WebSockets with a fallback. One server holding every connection is enough at first."
+      chapters: [chat-system, http]
+    - text: "Store each message once with a server-assigned sequence number per conversation. Clients that reconnect ask for everything after the last number they saw."
+      chapters: [chat-system, message-ordering]
+  notYet:
+    - "A separate tier of connection servers with a session registry. Add it when one server can no longer hold every open connection."
+  bottlenecks:
+    - text: "Open connections, not requests, become the limit. Each instance holds only its own sockets, so a message must be routed to the instance holding the recipient."
+      chapters: [chat-system, pub-sub]
+    - text: "Reconnection storms after a deploy or crash. Roll restarts gradually; clients reconnect with backoff and jitter."
+      chapters: [thundering-herd, retries]
+  lockIn:
+    - "The client protocol: installed apps keep speaking it for years. Version it from the first release."
+  measure:
+    - "Concurrent connections per instance, message delivery latency, and reconnect rate."
+  at10x:
+    - text: "Gateways that only hold connections, stateless message services, and publish/subscribe or a session registry between them."
+      chapters: [chat-system, pub-sub]

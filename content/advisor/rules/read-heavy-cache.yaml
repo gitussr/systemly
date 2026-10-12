@@ -1,5 +1,5 @@
 title: Cache repeated reads
-status: draft
+status: approved
 priority: 10
 when:
   readWrite: [read-heavy]

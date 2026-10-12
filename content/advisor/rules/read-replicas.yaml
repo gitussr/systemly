@@ -1,5 +1,5 @@
 title: Spread reads across replicas when slightly stale reads are acceptable
-status: draft
+status: approved
 priority: 10
 when:
   readWrite: [read-heavy]

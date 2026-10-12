@@ -1,5 +1,5 @@
 title: Keep files in object storage, not in the database or on app servers
-status: draft
+status: approved
 priority: 10
 when:
   dataTypes: [files]

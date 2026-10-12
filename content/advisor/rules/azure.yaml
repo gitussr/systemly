@@ -1,0 +1,11 @@
+title: Map the architecture to Azure services
+status: approved
+when:
+  cloud: [azure]
+sections:
+  lockIn:
+    - "Concept to Azure: load balancer → Application Gateway or Front Door; application → App Service, Container Apps or AKS; relational database → Azure Database for PostgreSQL or MySQL, or Azure SQL Database; cache → Azure's managed Redis service; queue → Service Bus; object storage → Blob Storage; CDN → Front Door."
+    - "Services with standard interfaces (PostgreSQL, the Redis protocol) are easier to move than proprietary ones such as Cosmos DB's native APIs."
+  migration:
+    - text: "Define infrastructure as code from the start, so the setup is documented and can be recreated."
+      chapters: [infrastructure-as-code]

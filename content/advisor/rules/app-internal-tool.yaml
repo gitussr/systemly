@@ -1,0 +1,17 @@
+title: Keep internal tools simple; spend the effort on access control
+status: approved
+priority: 5
+when:
+  appType: [internal-tool]
+architecture:
+  omit: [cdn, cache, read-replicas]
+sections:
+  why:
+    - text: "Internal users are few and known. Sign in through the company's identity provider, give each role only the permissions it needs, and log who changed what."
+      chapters: [authentication-security, rbac, audit-logging]
+  notYet:
+    - "CDNs, caches and replicas. Internal traffic rarely needs them; a single instance with backups is usually enough."
+  bottlenecks:
+    - "Direct access to production databases from the tool. Use a separate database account with narrow permissions, or the owning service's API."
+  lockIn:
+    - "Low. Internal tools are usually cheap to rewrite; the data they change belongs to other systems."

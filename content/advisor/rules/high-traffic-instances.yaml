@@ -1,0 +1,16 @@
+title: Spread thousands of requests per second across instances
+status: approved
+priority: 10
+when:
+  traffic: [1k-10k, over-10k]
+architecture:
+  add: [multiple-app-instances]
+sections:
+  why:
+    - text: "Thousands of requests per second at peak is more than one instance should carry alone. Several stateless instances behind a load balancer share the load and survive the loss of one."
+      chapters: [horizontal-scaling, stateless-application-design, load-balancer]
+  bottlenecks:
+    - text: "Database connections: every instance opens its own pool, and the database has a fixed limit. Size pools deliberately and use a pooler if needed."
+      chapters: [connection-pooling, connection-limits]
+  measure:
+    - "Requests per second per instance at the point where latency starts to rise; that is the real capacity of one instance."

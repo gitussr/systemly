@@ -1,5 +1,5 @@
 title: With strong consistency everywhere, scale the primary before adding replicas
-status: draft
+status: approved
 priority: 5
 when:
   readWrite: [read-heavy]

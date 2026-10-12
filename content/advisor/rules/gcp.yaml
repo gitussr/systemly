@@ -1,0 +1,11 @@
+title: Map the architecture to Google Cloud services
+status: approved
+when:
+  cloud: [gcp]
+sections:
+  lockIn:
+    - "Concept to Google Cloud: load balancer → Cloud Load Balancing; application → Cloud Run or GKE; relational database → Cloud SQL; cache → Memorystore; queue → Pub/Sub or Cloud Tasks; object storage → Cloud Storage; CDN → Cloud CDN."
+    - "Services with standard interfaces (PostgreSQL, the Redis protocol) are easier to move than proprietary ones such as Spanner or Firestore."
+  migration:
+    - text: "Define infrastructure as code from the start, so the setup is documented and can be recreated."
+      chapters: [infrastructure-as-code]

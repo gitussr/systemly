@@ -1,0 +1,14 @@
+title: Partition time series by time and expire old detail
+status: approved
+priority: 5
+when:
+  dataTypes: [time-series]
+sections:
+  why:
+    - text: "Time-series data is append-only and queried by time range. Partition it by day or month so queries read only recent partitions and old ones can be dropped cheaply."
+      chapters: [database-partitioning]
+  alternatives:
+    - "A time-series extension of your relational database, or a dedicated time-series database when ingest rate or retention outgrows it."
+  bottlenecks:
+    - text: "Storage grows without limit. Keep raw points for a short period and roll them up into minute or hour aggregates for the long term."
+      chapters: [analytics-system, metrics]

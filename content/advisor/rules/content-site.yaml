@@ -1,5 +1,5 @@
 title: Pre-render pages that are the same for every reader
-status: draft
+status: approved
 priority: 10
 when:
   appType: [content-site]

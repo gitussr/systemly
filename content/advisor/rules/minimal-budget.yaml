@@ -1,0 +1,15 @@
+title: On a minimal budget, pay for what protects data first
+status: approved
+priority: 1
+when:
+  budget: [minimal]
+sections:
+  why:
+    - "Spend first on backups and a managed database; they protect the one thing that cannot be recreated. Application capacity is cheap to add later."
+  alternatives:
+    - text: "Serverless or small platform tiers that scale to near zero when idle suit uneven, low traffic."
+      chapters: [serverless]
+  notYet:
+    - "Standby databases in several zones, multiple regions and dedicated caches, unless the availability requirement demands them."
+  measure:
+    - "Monthly cost per component, and which component grows fastest with usage."

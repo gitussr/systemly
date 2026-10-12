@@ -1,0 +1,16 @@
+title: Keep a CRUD application in one codebase with server-side rules
+status: approved
+priority: 5
+when:
+  appType: [crud-web-app]
+sections:
+  why:
+    - text: "Forms, lists and dashboards are reads and writes of related records. A relational database with transactions and constraints fits them directly."
+      chapters: [relational-databases, transactions-acid]
+    - text: "Validate input and check permissions on the server for every action. The interface can hide buttons; only the server can enforce rules."
+      chapters: [authorization-security]
+  bottlenecks:
+    - text: "List pages that filter and sort large tables. Add indexes for the queries the pages actually run, and paginate."
+      chapters: [database-indexes, query-optimization]
+  measure:
+    - "The slowest endpoints by p95 latency, and the queries behind them."

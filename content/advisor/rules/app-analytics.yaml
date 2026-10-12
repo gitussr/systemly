@@ -1,0 +1,21 @@
+title: Keep analytical scans away from transactional traffic
+status: approved
+priority: 5
+when:
+  appType: [analytics]
+sections:
+  why:
+    - text: "Reports scan many rows and a few columns. Run them on a store built for that (a read replica at first, a columnar warehouse later), not on the database serving users."
+      chapters: [analytics-system, read-replicas]
+  alternatives:
+    - "Hourly or daily batch loads into a warehouse are enough for most reporting. Stream processing is worth its complexity only when someone acts on data within minutes."
+  notYet:
+    - "A streaming pipeline for dashboards nobody watches in real time."
+  bottlenecks:
+    - text: "Dashboards that scan raw data on every load. Partition by date and pre-aggregate common questions into small rollup tables."
+      chapters: [analytics-system, database-partitioning]
+    - "Late events: group by when an event happened, not when it arrived, or yesterday's numbers keep changing."
+  lockIn:
+    - "Event names and schemas become a contract with every report. Keep raw data in an open format in your own storage so it can be queried by another engine."
+  measure:
+    - "Data freshness (how old the newest data is), query time for the main dashboards, and ingestion lag."

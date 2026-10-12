@@ -1,5 +1,5 @@
 title: Stay portable across providers
-status: draft
+status: approved
 when:
   cloud: [portable, self-hosted]
 sections:

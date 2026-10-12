@@ -1,5 +1,5 @@
 title: Buffer events before storing them
-status: draft
+status: approved
 priority: 10
 when:
   dataTypes: [events]

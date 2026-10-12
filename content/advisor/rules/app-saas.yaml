@@ -1,0 +1,25 @@
+title: Make the tenant explicit in every key and every query
+status: approved
+priority: 5
+when:
+  appType: [saas]
+sections:
+  why:
+    - text: "Start with all tenants in shared tables, with a tenant ID on every row. Resolve the tenant from the signed-in identity, never from a request parameter, and add database row-level security as a second layer."
+      chapters: [saas-platform, authorization-security]
+  alternatives:
+    - text: "A schema or database per tenant gives stronger isolation and easier per-tenant restores, at a higher cost per tenant. It suits a few large or regulated customers, not thousands of small ones."
+      chapters: [saas-platform]
+  notYet:
+    - text: "Cells (separate stacks per group of tenants). Introduce them when blast radius, data size or data-residency requirements demand it."
+      chapters: [saas-platform, failure-domains]
+  bottlenecks:
+    - text: "Noisy neighbours: one large tenant's import or report slows everyone. Apply per-tenant rate limits, concurrency caps and fair job scheduling."
+      chapters: [saas-platform, rate-limiting]
+  lockIn:
+    - "The tenancy model is the hardest decision to change later. Tenant IDs in every key, globally unique IDs and no cross-tenant references keep the later options open."
+  measure:
+    - "Load and latency per tenant, not only in total. A few tenants usually generate most of the load."
+  at100x:
+    - text: "Large tenants move to dedicated databases or cells; a tenant directory routes each request to the right one."
+      chapters: [saas-platform, sharding]

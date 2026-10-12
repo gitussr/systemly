@@ -1,0 +1,13 @@
+title: Store flexible documents in the relational database first
+status: approved
+priority: 5
+when:
+  dataTypes: [documents]
+sections:
+  alternatives:
+    - text: "JSON columns in PostgreSQL or MySQL hold documents next to relational data, with indexes on the fields you query and transactions across both."
+      chapters: [sql-vs-nosql, relational-databases]
+    - text: "A document database when documents are the main data, are read and written whole, and rarely need joins or multi-document transactions."
+      chapters: [nosql-databases, data-modeling]
+  lockIn:
+    - "Document databases' query languages and consistency settings differ widely; moving away later means rewriting queries as well as data."

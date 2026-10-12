@@ -1,5 +1,5 @@
 title: Absorb write bursts with a queue and background workers
-status: draft
+status: approved
 priority: 10
 when:
   readWrite: [write-heavy]

@@ -1,0 +1,14 @@
+title: Let team boundaries, not fashion, decide when to split services
+status: approved
+priority: 5
+when:
+  teamSize: [medium, large]
+sections:
+  alternatives:
+    - text: "A modular monolith with clear module owners. Teams work independently inside one deployable until deployment coordination becomes the measured bottleneck."
+      chapters: [modular-monolith, service-boundaries]
+  at10x:
+    - text: "Extract a service when a team needs to deploy independently or a component needs different scaling, and draw the boundary around data the team owns."
+      chapters: [when-microservices-make-sense, service-boundaries]
+  measure:
+    - "Lead time from merge to production, and how often teams block each other's releases."

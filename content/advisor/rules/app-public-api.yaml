@@ -1,0 +1,21 @@
+title: Treat the API contract and per-client limits as the product
+status: approved
+priority: 5
+when:
+  appType: [api-platform]
+sections:
+  why:
+    - text: "Identify every client with credentials, and limit requests per client so one integration cannot exhaust capacity for the others."
+      chapters: [api-keys, rate-limiting]
+    - text: "Make write endpoints idempotent. Clients retry on timeouts, and retries must not create duplicates."
+      chapters: [idempotency, retries]
+  notYet:
+    - text: "A separate API gateway product. Authentication, rate limiting and versioning can live in the application until several services sit behind the API."
+      chapters: [api-gateway]
+  bottlenecks:
+    - "Expensive endpoints (large exports, unbounded list queries) used heavily by a few clients. Paginate, cap page sizes and set timeouts."
+  lockIn:
+    - text: "Published endpoints, fields and error formats are a contract. Changing them breaks clients you do not control, so version the API and deprecate slowly."
+      chapters: [rest, apis]
+  measure:
+    - "Requests, errors and latency per client and per endpoint."

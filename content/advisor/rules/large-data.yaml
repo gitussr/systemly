@@ -1,0 +1,14 @@
+title: Plan backups, restores and partitioning for terabytes of data
+status: approved
+priority: 5
+when:
+  dataVolume: [1-10tb, over-10tb]
+sections:
+  bottlenecks:
+    - text: "Restore time: a multi-terabyte database can take hours to restore, which may exceed the recovery-time objective. Test restores and measure them."
+      chapters: [backups, rto]
+    - text: "Index maintenance and schema changes on very large tables. Partition large tables by time or key so each operation touches less data."
+      chapters: [database-partitioning]
+  at10x:
+    - text: "Move old, rarely read data to cheaper storage, and shard only when one server can no longer hold the data or sustain the write rate."
+      chapters: [sharding, sharding-strategies, object-storage]

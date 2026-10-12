@@ -1,0 +1,17 @@
+title: Prefer managed services the team does not have to operate
+status: approved
+priority: 5
+when:
+  experience: [beginner]
+sections:
+  why:
+    - text: "Use a managed database with automated backups and a platform that deploys and restarts the application for you. Operating infrastructure is a skill the team can learn later."
+      chapters: [managed-databases, why-cloud]
+  notYet:
+    - text: "Self-run Kafka, Kubernetes or database clusters. Each needs on-call expertise to run safely."
+      chapters: [kafka, containers]
+  bottlenecks:
+    - text: "Incidents that nobody can diagnose. Add basic metrics, logs and alerts from the first release."
+      chapters: [observability-fundamentals, alerting]
+  lockIn:
+    - "Managed services couple you to a provider's features and pricing. Prefer ones with standard interfaces (PostgreSQL, Redis protocol, S3 API) to keep the exit open."

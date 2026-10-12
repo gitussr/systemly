@@ -1,5 +1,5 @@
 title: Add a search index only when database search is not enough
-status: draft
+status: approved
 priority: 10
 when:
   dataTypes: [search]

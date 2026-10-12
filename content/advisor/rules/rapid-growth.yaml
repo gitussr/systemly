@@ -1,0 +1,16 @@
+title: For unpredictable growth, keep the application stateless and measure headroom
+status: approved
+priority: 5
+when:
+  growth: [rapid]
+sections:
+  why:
+    - text: "Keep sessions, uploads and background state out of application instances, so capacity can be added by starting more of them."
+      chapters: [stateless-application-design, horizontal-scaling]
+  notYet:
+    - "Designing now for a hundred times today's traffic. Prepare the next step, know the signal that triggers it, and keep the current design simple."
+  scalingPath:
+    - text: "Load-test regularly to find the next bottleneck before users do, and protect the system with rate limits and timeouts during surges."
+      chapters: [rate-limiting, timeouts, backpressure]
+  measure:
+    - "Headroom: peak utilization of the busiest resource (database CPU, connections, instance CPU) against its limit, tracked week by week."

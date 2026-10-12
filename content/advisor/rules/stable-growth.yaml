@@ -1,0 +1,10 @@
+title: With stable demand, optimize for cost and simplicity
+status: approved
+priority: 1
+when:
+  growth: [stable]
+sections:
+  notYet:
+    - "Elastic scaling machinery. With predictable load, a right-sized fixed setup is cheaper and easier to reason about."
+  measure:
+    - "Cost per request or per user, and how much of each resource is idle."

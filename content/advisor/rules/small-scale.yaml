@@ -1,0 +1,17 @@
+title: At this size, one small server or platform service is enough
+status: approved
+priority: 1
+when:
+  users: [under-1k, 1k-10k]
+  traffic: [under-10, 10-100]
+architecture:
+  omit: [load-balancer, multiple-app-instances, cdn]
+sections:
+  why:
+    - text: "A hundred requests per second or fewer is well within one modest application instance and one database. Spend the effort on the product, backups and monitoring."
+      chapters: [why-systems-need-to-scale, vertical-scaling]
+  notYet:
+    - "A load balancer and several instances, unless the availability requirement asks for them. Automatic restarts and tested backups cover most failures at this size."
+  scalingPath:
+    - text: "The first step when load grows is usually a larger instance and fixing slow queries, not more architecture."
+      chapters: [vertical-scaling, query-optimization]

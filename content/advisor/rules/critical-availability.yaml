@@ -1,0 +1,21 @@
+title: For 99.99%, remove every single point of failure and practise failover
+status: approved
+priority: 5
+when:
+  availability: [critical]
+sections:
+  why:
+    - text: "99.99% allows about 4 minutes of downtime a month. That leaves no time for manual recovery: every component needs a redundant copy in another availability zone and automatic failover."
+      chapters: [availability, multi-az, failover]
+  notYet:
+    - text: "Active-active writes in several regions. Multi-zone redundancy within one region covers most failures at far lower complexity."
+      chapters: [multi-region]
+  bottlenecks:
+    - text: "Dependencies: a 99.99% service that calls three 99.9% dependencies cannot meet its target. Add timeouts, circuit breakers and degraded modes."
+      chapters: [graceful-degradation, circuit-breaker]
+  measure:
+    - text: "Availability against an SLO with an error budget, and the time to detect and recover from each incident."
+      chapters: [slo, error-budgets]
+  at10x:
+    - text: "Test failover and restores regularly, and introduce controlled failures to find weaknesses before users do."
+      chapters: [chaos-engineering, disaster-recovery]

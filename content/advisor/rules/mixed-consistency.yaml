@@ -1,0 +1,13 @@
+title: Keep money and stock strict; let the rest be eventually consistent
+status: approved
+priority: 5
+when:
+  consistency: [mostly-strong]
+sections:
+  why:
+    - text: "Write balances, orders and stock in transactions on the primary database, and read them from there. Feeds, counters, search results and analytics can lag by seconds."
+      chapters: [transactions-acid, eventual-consistency, data-consistency]
+  bottlenecks:
+    - "Code that reads strict data from a cache or replica by accident. Mark which reads must be current, and route them to the primary."
+  measure:
+    - "Replication lag and cache staleness, compared with how stale each kind of data is allowed to be."

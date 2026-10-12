@@ -1,5 +1,5 @@
 title: Map the architecture to AWS services
-status: draft
+status: approved
 when:
   cloud: [aws]
 sections:

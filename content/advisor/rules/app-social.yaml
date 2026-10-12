@@ -1,0 +1,27 @@
+title: Build feeds at read time first; precompute them when reads dominate
+status: approved
+priority: 5
+when:
+  appType: [social]
+architecture:
+  add: [object-storage]
+sections:
+  why:
+    - text: "Start with fan-out on read: one indexed query merges recent posts from followed accounts. Posting is a single insert, and follows and deletions take effect immediately."
+      chapters: [social-feed, database-indexes]
+    - text: "Keep images and videos in object storage, and store only their references with the posts."
+      chapters: [object-storage]
+  notYet:
+    - "Precomputed timelines for every user. They multiply writes and need cleanup on unfollow and delete."
+  bottlenecks:
+    - text: "Feed reads repeat the same merge. Cache posts first; then precompute timelines of post IDs for active users."
+      chapters: [social-feed, caching]
+    - text: "Accounts with millions of followers: copying each post to every follower floods the system. Merge their posts at read time instead (a hybrid)."
+      chapters: [social-feed, hot-partitions]
+  lockIn:
+    - "The post ID format: clients store cursors and timelines store IDs. Choose globally unique, time-ordered IDs early."
+  measure:
+    - "Feed latency, the ratio of feed opens to posts, and the follower distribution of accounts that post."
+  at100x:
+    - text: "Timelines in an in-memory store sharded by user, asynchronous fan-out through a queue, and read-time filtering of deleted or blocked content."
+      chapters: [social-feed, sharding, message-queue]

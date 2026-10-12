@@ -1,5 +1,5 @@
 title: Serve content close to distant users
-status: draft
+status: approved
 priority: 10
 when:
   geography: [multi-region, global]

@@ -1,0 +1,30 @@
+title: Cache the catalog; keep orders and stock strictly correct
+status: approved
+priority: 10
+when:
+  appType: [e-commerce]
+architecture:
+  add: [object-storage, cdn]
+sections:
+  why:
+    - text: "Browsing is high-volume and tolerates slightly stale data; ordering is low-volume and must be exact. Serve product images from object storage through a CDN, and keep orders, stock and payments in one transactional database."
+      chapters: [e-commerce-platform, object-storage, cdn]
+    - text: "Prevent overselling with one atomic conditional update of stock, and reprice the cart from the database at checkout."
+      chapters: [e-commerce-platform, transactions-acid]
+    - text: "Send every payment request with an idempotency key, and treat a provider timeout as unknown, not failed."
+      chapters: [payment-system, idempotency]
+  alternatives:
+    - "A hosted commerce platform, if the catalog and checkout are standard and the product's value lies elsewhere."
+  notYet:
+    - text: "Separate services for orders, inventory and payments. In one database, checkout is one transaction; across services it becomes a saga."
+      chapters: [modular-monolith, saga-pattern]
+  bottlenecks:
+    - text: "Flash sales: thousands of buyers updating one stock row. Rate-limit the sale item, admit buyers through a waiting room, or split its stock across rows."
+      chapters: [e-commerce-platform, hot-partitions]
+  lockIn:
+    - "The payment provider: saved cards and tokens usually cannot move to another provider. Keep provider calls behind one payment module and keep your own order and payment records."
+  measure:
+    - "Checkout latency and error rate, separately from browsing."
+  at10x:
+    - text: "Move emails, invoices and fulfilment requests to background workers through an outbox, so checkout does not wait for them."
+      chapters: [outbox-pattern, worker]

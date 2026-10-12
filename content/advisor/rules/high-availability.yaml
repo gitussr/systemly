@@ -1,5 +1,5 @@
 title: Remove the single application instance as a point of failure
-status: draft
+status: approved
 priority: 10
 when:
   availability: [high, critical]
