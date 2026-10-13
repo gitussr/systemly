@@ -1,9 +1,11 @@
 ---
 /**
- * Phones and tablets: a floating, frosted-glass navigation bar near the bottom of the screen.
+ * Phones and tablets: a floating "liquid glass" navigation bar near the bottom of the screen:
+ * nearly clear, with a light-catching rim, an inner sheen, and (in Chromium) edges that bend
+ * the content behind like a lens, via the SVG displacement filter below.
  * The two sections (Roadmap and System Lab) on the left, and a glossy search button on the
  * right that opens the search dialog (src/scripts/search-dialog.ts; without JavaScript it is a
- * link to /search). Page content scrolls behind the bar and shows through, blurred.
+ * link to /search). Page content scrolls behind the bar and shows through, lightly blurred.
  */
 import Icon from './Icon.astro';
 import { inSection, site } from '../config/site';
@@ -35,6 +37,22 @@ const current = Astro.url.pathname;
   </div>
 </nav>
 
+<!-- The lens: no shift in the middle of the bar, a growing shift towards its edges. -->
+<svg class="bottom-nav__filters" aria-hidden="true" focusable="false" width="0" height="0">
+  <filter id="liquid-glass" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage
+      href={`data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22400%22%20height%3D%2264%22%20viewBox%3D%220%200%20400%2064%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%22.12%22%20stop-color%3D%22%23800000%22/%3E%3Cstop%20offset%3D%22.88%22%20stop-color%3D%22%23800000%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f00%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23000%22/%3E%3Cstop%20offset%3D%22.3%22%20stop-color%3D%22%23008000%22/%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%23008000%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230f0%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%22400%22%20height%3D%2264%22%20fill%3D%22url%28%23r%29%22/%3E%3Crect%20width%3D%22400%22%20height%3D%2264%22%20fill%3D%22url%28%23g%29%22%20style%3D%22mix-blend-mode%3Ascreen%22/%3E%3C/svg%3E`}
+      x="0"
+      y="0"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="none"
+      result="map"
+    />
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-36" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
+
 <style>
   /* Shown below 64rem; wide screens use the header links instead. */
   .bottom-nav {
@@ -50,10 +68,24 @@ const current = Astro.url.pathname;
     }
   }
 
-  /* Frosted glass: translucent surface, blur of what scrolls behind, a bright rim and a soft lift. */
+  .bottom-nav__filters {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  /*
+   * Liquid glass: a nearly clear surface that brightens and saturates what is behind it,
+   * a rim that catches light at the top and fades at the bottom (::before), a soft sheen on
+   * the upper half (::after), and a lift off the page.
+   */
   .bottom-nav__bar {
-    --glass: color-mix(in srgb, var(--color-surface) 62%, transparent);
-    --rim: rgb(255 255 255 / 0.9);
+    --glass: color-mix(in srgb, var(--color-surface) 30%, transparent);
+    --rim-top: rgb(255 255 255 / 0.95);
+    --rim-low: rgb(255 255 255 / 0.15);
+    --sheen: rgb(255 255 255 / 0.35);
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -62,19 +94,56 @@ const current = Astro.url.pathname;
     height: var(--bottom-nav-bar);
     margin: 0 auto;
     padding: 0 var(--space-2) 0 var(--space-3);
-    border: 2px solid var(--rim);
-    border-radius: 1.75rem;
+    border-radius: 999px;
     background: var(--glass);
     box-shadow:
-      0 10px 30px rgb(7 21 30 / 0.12),
-      0 2px 6px rgb(7 21 30 / 0.06),
-      inset 0 1px 0 rgb(255 255 255 / 0.7);
-    -webkit-backdrop-filter: blur(18px) saturate(1.6);
-    backdrop-filter: blur(18px) saturate(1.6);
+      0 12px 32px rgb(7 21 30 / 0.14),
+      0 2px 8px rgb(7 21 30 / 0.08),
+      inset 0 1px 2px rgb(255 255 255 / 0.85),
+      inset 0 -1px 2px rgb(255 255 255 / 0.3),
+      inset 0 0 16px rgb(255 255 255 / 0.25);
+    -webkit-backdrop-filter: blur(6px) saturate(1.9) brightness(1.06);
+    backdrop-filter: blur(6px) saturate(1.9) brightness(1.06);
     pointer-events: auto;
   }
 
-  /* Browsers without backdrop blur get a nearly opaque surface, so text behind stays out of the way. */
+  /*
+   * Only Chromium bends the backdrop with an SVG filter; Safari accepts the syntax but would
+   * draw no backdrop, so the rule also needs a Chromium-only feature (interpolate-size).
+   */
+  @supports (backdrop-filter: url(#liquid-glass)) and (interpolate-size: allow-keywords) {
+    .bottom-nav__bar {
+      backdrop-filter: url(#liquid-glass) blur(6px) saturate(1.9) brightness(1.06);
+    }
+  }
+
+  .bottom-nav__bar::before,
+  .bottom-nav__bar::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* The rim: a 1.5px ring, bright where light falls, almost gone underneath. */
+  .bottom-nav__bar::before {
+    inset: 0;
+    padding: 1.5px;
+    background: linear-gradient(170deg, var(--rim-top), var(--rim-low) 45%, var(--rim-low) 70%, rgb(255 255 255 / 0.55));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+
+  /* The sheen: light pooled on the upper half of the glass. */
+  .bottom-nav__bar::after {
+    inset: 2px 6% 50%;
+    background: linear-gradient(180deg, var(--sheen), transparent);
+    filter: blur(1px);
+  }
+
+  /* Browsers without backdrop effects get a nearly opaque surface, so text behind stays out of the way. */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .bottom-nav__bar {
       --glass: color-mix(in srgb, var(--color-surface) 96%, transparent);
@@ -82,11 +151,14 @@ const current = Astro.url.pathname;
   }
 
   :global(:root[data-theme='dark']) .bottom-nav__bar {
-    --glass: color-mix(in srgb, var(--color-surface) 70%, transparent);
-    --rim: rgb(255 255 255 / 0.1);
+    --glass: color-mix(in srgb, var(--color-surface) 45%, transparent);
+    --rim-top: rgb(255 255 255 / 0.35);
+    --rim-low: rgb(255 255 255 / 0.04);
+    --sheen: rgb(255 255 255 / 0.08);
     box-shadow:
-      0 10px 30px rgb(0 0 0 / 0.45),
-      inset 0 1px 0 rgb(255 255 255 / 0.06);
+      0 12px 32px rgb(0 0 0 / 0.5),
+      inset 0 1px 1px rgb(255 255 255 / 0.18),
+      inset 0 0 16px rgb(255 255 255 / 0.04);
   }
 
   .bottom-nav__items {
@@ -128,31 +200,36 @@ const current = Astro.url.pathname;
 
   /* The current section: a light green pill, darker text. */
   .bottom-nav__item[aria-current='page'] {
-    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 28%, transparent);
     color: var(--color-text);
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 0.7),
+      inset 0 -1px 2px color-mix(in srgb, var(--color-accent-ink) 25%, transparent);
   }
 
   .bottom-nav__item[aria-current='page'] .bottom-nav__label {
     font-weight: 700;
   }
 
-  /* The search button: a glossy green pill with a bright rim and a soft glow. */
+  /* The search button: a drop of green glass, lit from the top, with a soft glow below. */
   .bottom-nav__search {
+    position: relative;
     display: inline-flex;
     flex: none;
     align-items: center;
     justify-content: center;
     width: 4rem;
     height: 2.75rem;
-    border: 2px solid rgb(255 255 255 / 0.85);
+    border: 1px solid rgb(255 255 255 / 0.7);
     border-radius: 999px;
     background:
-      radial-gradient(120% 90% at 30% 20%, rgb(255 255 255 / 0.55), transparent 55%),
-      linear-gradient(135deg, #8fe0b1, var(--systemly-green) 45%, #3fae76);
+      radial-gradient(90% 70% at 50% 0%, rgb(255 255 255 / 0.6), transparent 60%),
+      linear-gradient(180deg, rgb(143 224 177 / 0.9), rgb(63 174 118 / 0.92));
     color: #ffffff;
     box-shadow:
-      0 6px 16px rgb(63 174 118 / 0.35),
-      inset 0 -2px 6px rgb(27 110 69 / 0.25);
+      0 8px 18px rgb(63 174 118 / 0.4),
+      inset 0 1px 1px rgb(255 255 255 / 0.9),
+      inset 0 -3px 6px rgb(27 110 69 / 0.35);
     -webkit-tap-highlight-color: transparent;
   }
 

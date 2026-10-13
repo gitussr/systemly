@@ -60,7 +60,7 @@ const current = Astro.url.pathname;
 
   /*
    * Below 64rem the section links live in the bottom navigation bar (BottomNav), so the
-   * header is one row: logo and tools (search, then theme). From 64rem: logo, links, tools.
+   * header is one row: logo and the theme switch. From 64rem: logo, links, search and theme.
    */
   .site-header__inner {
     display: grid;
@@ -150,6 +150,17 @@ const current = Astro.url.pathname;
     height: 2.75rem;
     border-radius: var(--radius-md);
     color: var(--color-text-muted);
+  }
+
+  /* Below 64rem search is the button in the floating navigation bar (BottomNav). */
+  .header-icon--search {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .header-icon--search {
+      display: inline-flex;
+    }
   }
 
   .header-icon:hover,

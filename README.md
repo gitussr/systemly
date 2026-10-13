@@ -65,7 +65,7 @@ tests/            # Vitest unit tests
 
 ## Navigation
 
-The site has two sections: **Roadmap** (the roadmap and every chapter page) and **System Lab** (`/lab`: the five tools — Advisor, Playground, Evolution, Why not?, Decisions — and the Library index). Tools keep their own URLs; `inSection()` in `src/config/site.ts` decides which section a page highlights, and `src/config/tools.ts` holds each tool's step, question and summary. From 64rem the two links are in the header; below it they are a floating frosted-glass bar near the bottom of the screen, with a glossy search button on the right that opens the search dialog. Search and the theme switch are header icons at every width (search first). Icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
+The site has two sections: **Roadmap** (the roadmap and every chapter page) and **System Lab** (`/lab`: the five tools — Advisor, Playground, Evolution, Why not?, Decisions — and the Library index). Tools keep their own URLs; `inSection()` in `src/config/site.ts` decides which section a page highlights, and `src/config/tools.ts` holds each tool's step, question and summary. From 64rem the two links are in the header; below it they are a floating "liquid glass" bar near the bottom of the screen (an SVG displacement filter bends its edges in Chromium), with a glossy search button on the right that opens the search dialog. The header has the theme switch at every width and the search icon from 64rem. Icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
 
 ## Installable app and offline reading
 
