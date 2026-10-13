@@ -43,6 +43,25 @@ export function loadLog(store: Storage | undefined = storage()): ReadingLog {
   }
 }
 
+/** The chapter the reader opened last, so the Roadmap can show where they are. */
+const LAST_KEY = 'systemly-last-chapter';
+
+export function loadLastChapter(store: Storage | undefined = storage()): string | undefined {
+  try {
+    return store?.getItem(LAST_KEY) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function recordLastChapter(slug: string, store: Storage | undefined = storage()): void {
+  try {
+    if (slug) store?.setItem(LAST_KEY, slug);
+  } catch {
+    // Storage full or blocked: the Roadmap simply shows no current chapter.
+  }
+}
+
 /** Records progress for a chapter, keeping the furthest point reached. Returns the saved value. */
 export function recordProgress(slug: string, progress: number, store: Storage | undefined = storage()): number {
   const log = loadLog(store);

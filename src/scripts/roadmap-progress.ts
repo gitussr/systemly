@@ -7,21 +7,24 @@
  *   "2 of 14 read · 14%"; each chapter row shows a slim bar and its percentage.
  *   Nothing is shown until the reader has started at least one chapter.
  * - The chip for the level on screen is highlighted and kept in view in the strip.
- * - Levels are folded: the reader's current level opens (Level 0 before any reading),
+ * - The chapter the reader opened last is marked "Reading now" on a stronger green row.
+ * - Levels are folded: the level of that chapter opens (else the first level not yet read,
+ *   Level 0 before any reading); the open level sits on light green;
  *   a level chip or a #level-N link opens its level, and "Expand all" opens every level.
  */
-import { chapterState, currentGroupIndex, groupSummary, loadLog, type ReadingLog } from '../lib/reading/store';
+import { chapterState, currentGroupIndex, groupSummary, loadLastChapter, loadLog, type ReadingLog } from '../lib/reading/store';
 
 const slugsOf = (el: HTMLElement) => (el.dataset.slugs ?? '').split(' ').filter(Boolean);
 
 export function initRoadmapProgress(): void {
   const log = loadLog();
   if (Object.keys(log).length > 0) showProgress(log);
-  foldLevels(log);
+  const current = markCurrentChapter();
+  foldLevels(log, current);
   followLevels();
 }
 
-function foldLevels(log: ReadingLog): void {
+function foldLevels(log: ReadingLog, current: HTMLElement | undefined): void {
   const levels = [...document.querySelectorAll<HTMLDetailsElement>('details.level__details')];
   if (levels.length === 0) return;
 
@@ -31,11 +34,14 @@ function foldLevels(log: ReadingLog): void {
   };
 
   // A link to a level opens it (and leaves the rest as they are, so the target does not move);
-  // otherwise the level the reader is working through replaces Level 0 as the open one.
+  // otherwise the level of the chapter being read (or the first level not yet read) replaces Level 0.
   if (location.hash.startsWith('#level-')) openLevel(location.hash.slice(1));
-  else if (Object.keys(log).length > 0) {
-    const current = currentGroupIndex(levels.map(slugsOf), log);
-    levels.forEach((details, index) => (details.open = index === current));
+  else if (current) {
+    const open = current.closest<HTMLDetailsElement>('details.level__details');
+    levels.forEach((details) => (details.open = details === open));
+  } else if (Object.keys(log).length > 0) {
+    const first = currentGroupIndex(levels.map(slugsOf), log);
+    levels.forEach((details, index) => (details.open = index === first));
   }
 
   // Opens before the browser follows the link, so it scrolls to the opened level.
@@ -58,6 +64,19 @@ function foldLevels(log: ReadingLog): void {
   for (const details of levels) details.addEventListener('toggle', sync);
   sync();
   toggle.hidden = false;
+}
+
+/** Marks the row of the chapter the reader opened last; returns it, if it is on the roadmap. */
+function markCurrentChapter(): HTMLElement | undefined {
+  const slug = loadLastChapter();
+  if (!slug) return undefined;
+  const row = [...document.querySelectorAll<HTMLElement>('.chapter-row[data-slug]')].find((r) => r.dataset.slug === slug);
+  if (!row) return undefined;
+  row.dataset.current = 'true';
+  row.querySelector<HTMLAnchorElement>('.chapter-row__title')?.setAttribute('aria-current', 'location');
+  const tag = row.querySelector<HTMLElement>('.chapter-row__here');
+  if (tag) tag.hidden = false;
+  return row;
 }
 
 function showProgress(log: ReadingLog): void {

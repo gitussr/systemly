@@ -14,7 +14,7 @@
  * page resizes (diagrams render after load and change the chapter's height).
  */
 import { activeSection, readingMinutes, readingProgress, timeLeftLabel } from '../lib/reading/progress';
-import { loadLog, READ_AT, recordProgress } from '../lib/reading/store';
+import { loadLog, READ_AT, recordLastChapter, recordProgress } from '../lib/reading/store';
 
 /** A section counts as being read once its heading passes this far down the viewport. */
 const ACTIVE_LINE = 0.25;
@@ -29,6 +29,7 @@ export function initReadingProgress(): void {
   const bar = root?.querySelector<HTMLElement>('.reading-progress__bar');
   if (!prose || !root || !bar) return;
   const slug = root.dataset.slug ?? '';
+  recordLastChapter(slug);
   let saved = loadLog()[slug] ?? 0;
   const resume = setupResume(prose, saved);
   const ring = setupRing();

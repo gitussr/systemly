@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { activeSection, readingMinutes, readingProgress, timeLeftLabel } from '../src/lib/reading/progress';
-import { chapterState, currentGroupIndex, groupSummary, loadLog, parseLog, recordProgress } from '../src/lib/reading/store';
+import {
+  chapterState,
+  currentGroupIndex,
+  groupSummary,
+  loadLastChapter,
+  loadLog,
+  parseLog,
+  recordLastChapter,
+  recordProgress,
+} from '../src/lib/reading/store';
 
 describe('readingProgress', () => {
   it('runs from the article top at the viewport top to its bottom at the viewport bottom', () => {
@@ -66,6 +75,16 @@ describe('reading log', () => {
     expect(recordProgress('dns', 0.2, store)).toBe(0.4);
     expect(recordProgress('dns', 1.2, store)).toBe(1);
     expect(loadLog(store)).toEqual({ dns: 1 });
+  });
+
+  it('remembers the chapter opened last', () => {
+    const store = memory();
+    expect(loadLastChapter(store)).toBeUndefined();
+    recordLastChapter('dns', store);
+    recordLastChapter('tls', store);
+    recordLastChapter('', store);
+    expect(loadLastChapter(store)).toBe('tls');
+    expect(loadLastChapter(undefined)).toBeUndefined();
   });
 
   it('ignores malformed saved data', () => {

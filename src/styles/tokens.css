@@ -19,6 +19,9 @@
   --color-border: #e1e5e8;
   --color-accent: var(--systemly-green);
   --color-accent-ink: var(--systemly-green-ink);
+  /* Light green surfaces: an open roadmap level, and (stronger) the chapter being read. */
+  --color-accent-soft: #eaf8f0;
+  --color-accent-soft-strong: #d2f0de;
   --color-on-accent: var(--charcoal);
   --color-focus: var(--systemly-green-ink);
   --color-code-bg: #eef1f3;
@@ -88,5 +91,7 @@
   --color-border: #1c3240;
   --color-accent-ink: var(--systemly-green);
   --color-focus: var(--systemly-green);
+  --color-accent-soft: #10291f;
+  --color-accent-soft-strong: #16402d;
   --color-code-bg: #0b1b25;
 }
