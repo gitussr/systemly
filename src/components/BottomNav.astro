@@ -1,83 +1,52 @@
 ---
 /**
- * Phones and tablets: a floating "liquid glass" navigation bar, after iOS 26's material.
- * The two sections (Roadmap and System Lab) on the left, the current one marked by a drop of
- * green glass that morphs to the other tab on navigation (a cross-document view transition);
- * a glass search button on the right opens the search dialog (src/scripts/search-dialog.ts;
- * without JavaScript it links to /search).
- *
- * The glass: the backdrop is brightened and saturated, a rim catches light from above (or
- * from the phone's tilt), and in Chromium the edges refract the content behind like a lens:
- * src/scripts/liquid-glass.ts draws each shape's displacement map
- * for the filters below. The bar shrinks to its icons while the reader scrolls down.
+ * Phones and tablets: a floating navigation bar near the bottom of the screen, in subtle
+ * frosted glass (blur, a light tint, faint grain and a thin rim). Three equal tabs, each a thin
+ * icon above a small label: Roadmap, System Lab and Search. Search opens the search dialog
+ * (src/scripts/search-dialog.ts); without JavaScript it is a link to /search.
  */
 import Icon from './Icon.astro';
-import { inSection, site } from '../config/site';
+import { inSection, isCurrent, site } from '../config/site';
+import type { NavItem } from '../config/site';
 
 const current = Astro.url.pathname;
-
-// One lens filter per glass shape; liquid-glass.ts sets each one's map, region and scale.
-const lenses = ['lens-bar', 'lens-search'];
+const search: NavItem = { label: 'Search', href: '/search', icon: 'search' };
+const tabs = [...site.nav, search];
 ---
 
 <nav class="bottom-nav" aria-label="Main">
-  <div class="bottom-nav__bar" data-lens="lens-bar">
-    <ul class="bottom-nav__items">
-      {
-        site.nav.map((item) => {
-          const here = inSection(current, item);
-          return (
-            <li>
-              <a class="bottom-nav__item" href={item.href} aria-current={here ? 'page' : undefined}>
-                {here && <span class="bottom-nav__drop" aria-hidden="true" />}
+  <ul class="bottom-nav__bar">
+    {
+      tabs.map((item) => {
+        const isSearch = item === search;
+        const here = isSearch ? isCurrent(current, item.href) : inSection(current, item);
+        return (
+          <li>
+            <a
+              class="bottom-nav__item"
+              href={item.href}
+              aria-current={here ? 'page' : undefined}
+              aria-haspopup={isSearch ? 'dialog' : undefined}
+              data-search-open={isSearch ? '' : undefined}
+            >
+              <span class="bottom-nav__icon">
                 <Icon name={item.icon} />
-                <span class="bottom-nav__label">{item.label}</span>
-              </a>
-            </li>
-          );
-        })
-      }
-    </ul>
-    <a
-      class="bottom-nav__search"
-      href="/search"
-      aria-label="Search"
-      aria-haspopup="dialog"
-      data-search-open
-      data-lens="lens-search"
-    >
-      <Icon name="search" />
-    </a>
-  </div>
+              </span>
+              <span class="bottom-nav__label">{item.label}</span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
 </nav>
-
-<svg class="bottom-nav__filters" aria-hidden="true" focusable="false" width="0" height="0">
-  {
-    lenses.map((id) => (
-      <filter id={id} filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-        <feImage preserveAspectRatio="none" result="map" />
-        <feDisplacementMap in="SourceGraphic" in2="map" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    ))
-  }
-</svg>
-
-<script>
-  import { initLiquidGlass } from '../scripts/liquid-glass';
-  initLiquidGlass();
-</script>
 
 <style>
   /* Shown below 64rem; wide screens use the header links instead. */
   .bottom-nav {
-    --spring: cubic-bezier(0.34, 1.45, 0.64, 1);
-    --light-angle: 170deg;
     position: fixed;
     inset: auto var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
     z-index: 20;
-    display: flex;
-    justify-content: center;
-    pointer-events: none; /* only the glass takes taps */
   }
 
   @media (min-width: 64rem) {
@@ -86,280 +55,95 @@ const lenses = ['lens-bar', 'lens-search'];
     }
   }
 
-  .bottom-nav__filters {
-    position: absolute;
-    width: 0;
-    height: 0;
-  }
-
-  /*
-   * The glass. Clear in the middle, the backdrop brightened and saturated; a rim lit from
-   * --light-angle (::before); a sheen pooled on the upper half (::after); a soft lift.
-   */
-  .bottom-nav__bar,
-  .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-surface) 48%, transparent);
-    /* Fine grain over the glass, as frosted glass has: tiled SVG noise, faint (alpha 0.16) by itself. */
-    --grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22140%22%20height%3D%22140%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.85%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3CfeColorMatrix%20values%3D%220%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200.16%200%22/%3E%3C/filter%3E%3Crect%20width%3D%22140%22%20height%3D%22140%22%20filter%3D%22url%28%23n%29%22/%3E%3C/svg%3E");
-    --rim-lit: rgb(255 255 255 / 0.95);
-    --rim-dim: rgb(255 255 255 / 0.12);
-    --sheen: rgb(255 255 255 / 0.3);
-    position: relative;
-    isolation: isolate;
-    border-radius: 999px;
-    -webkit-backdrop-filter: blur(14px) saturate(1.8) brightness(1.06);
-    backdrop-filter: blur(14px) saturate(1.8) brightness(1.06);
-    pointer-events: auto;
-  }
-
-  /* Chromium refracts the backdrop through the lens map, once one has been drawn (.has-lens),
-     and not while the bar changes size (.is-morphing), when the map would be out of date. */
-  @supports (backdrop-filter: url(#a)) and (interpolate-size: allow-keywords) {
-    .bottom-nav:not(:global(.is-morphing)) .bottom-nav__bar:global(.has-lens) {
-      backdrop-filter: url(#lens-bar) blur(12px) saturate(1.8) brightness(1.06);
-    }
-
-    .bottom-nav__search:global(.has-lens) {
-      backdrop-filter: url(#lens-search) blur(10px) saturate(1.6) brightness(1.05);
-    }
-  }
-
+  /* Subtle frosted glass: the page behind is blurred under a light tint with a faint grain. */
   .bottom-nav__bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    width: 100%;
-    max-width: 26rem;
+    --glass: color-mix(in srgb, var(--color-surface) 72%, transparent);
+    --grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22140%22%20height%3D%22140%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.85%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3CfeColorMatrix%20values%3D%220%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200.16%200%22/%3E%3C/filter%3E%3Crect%20width%3D%22140%22%20height%3D%22140%22%20filter%3D%22url%28%23n%29%22/%3E%3C/svg%3E");
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 24rem;
     height: var(--bottom-nav-bar);
-    padding: 0 var(--space-1) 0 var(--space-1);
+    margin: 0 auto;
+    padding: 0 var(--space-1);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, rgb(255 255 255 / 0.6));
+    border-radius: 1.5rem;
     background: var(--grain), var(--glass);
-    box-shadow:
-      0 14px 34px rgb(7 21 30 / 0.16),
-      0 3px 8px rgb(7 21 30 / 0.08),
-      inset 0 0 18px rgb(255 255 255 / 0.22);
-    transition: transform 0.45s var(--spring);
-  }
-
-  /* Pressing anywhere on the bar: it swells a little and springs back, like a drop of liquid. */
-  .bottom-nav__bar:active {
-    transform: scale(1.025);
-  }
-
-  .bottom-nav__bar::before,
-  .bottom-nav__bar::after,
-  .bottom-nav__search::before,
-  .bottom-nav__search::after {
-    content: '';
-    position: absolute;
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  /* The rim: a thin ring, brightest where the light falls, nearly gone opposite it. */
-  .bottom-nav__bar::before,
-  .bottom-nav__search::before {
-    inset: 0;
-    z-index: 2;
-    padding: 1.25px;
-    background: linear-gradient(
-      var(--light-angle),
-      var(--rim-lit),
-      var(--rim-dim) 38%,
-      var(--rim-dim) 66%,
-      rgb(255 255 255 / 0.5)
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-    transition: background 0.3s linear;
-  }
-
-  /* The sheen: light pooled under the top edge, fading towards the middle. */
-  .bottom-nav__bar::after,
-  .bottom-nav__search::after {
-    inset: 1px 8% 52%;
-    z-index: -1;
-    background: linear-gradient(180deg, var(--sheen), transparent);
-    filter: blur(1.5px);
-  }
-
-  /* Browsers without backdrop effects get a nearly opaque surface, so text behind stays out of the way. */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .bottom-nav__bar,
-    .bottom-nav__search {
-      --glass: color-mix(in srgb, var(--color-surface) 96%, transparent);
-    }
-  }
-
-  :global(:root[data-theme='dark']) .bottom-nav__bar,
-  :global(:root[data-theme='dark']) .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-surface) 55%, transparent);
-    --rim-lit: rgb(255 255 255 / 0.4);
-    --rim-dim: rgb(255 255 255 / 0.05);
-    --sheen: rgb(255 255 255 / 0.07);
-  }
-
-  :global(:root[data-theme='dark']) .bottom-nav__bar {
-    box-shadow:
-      0 14px 34px rgb(0 0 0 / 0.5),
-      inset 0 0 18px rgb(255 255 255 / 0.04);
-  }
-
-  .bottom-nav__items {
-    display: flex;
-    gap: 0.125rem;
-    margin: 0;
-    padding: 0;
+    box-shadow: 0 8px 24px rgb(7 21 30 / 0.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
     list-style: none;
   }
 
+  /* Browsers without backdrop blur get a nearly opaque surface instead. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bottom-nav__bar {
+      --glass: color-mix(in srgb, var(--color-surface) 97%, transparent);
+    }
+  }
+
+  :global(:root[data-theme='dark']) .bottom-nav__bar {
+    --glass: color-mix(in srgb, var(--color-surface) 75%, transparent);
+    border-color: rgb(255 255 255 / 0.08);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+  }
+
   .bottom-nav__item {
-    position: relative;
-    isolation: isolate;
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
-    min-height: 2.875rem;
-    padding: 0 var(--space-4);
-    border-radius: 999px;
+    justify-content: center;
+    gap: 0.125rem;
+    height: 100%;
     color: var(--color-text-muted);
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .bottom-nav__item :global(.icon) {
+  /* The pill behind the icon marks the current tab. */
+  .bottom-nav__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 1.75rem;
+    border-radius: 999px;
+  }
+
+  /* Thin, crisp line icons: the 1px hairline stroke from Icon.astro. */
+  .bottom-nav__icon :global(.icon) {
     width: 1.375rem;
     height: 1.375rem;
-    flex: none;
-    stroke-width: 1.5;
   }
 
   .bottom-nav__label {
-    max-width: 7rem;
-    overflow: hidden;
-    font-size: var(--text-sm);
+    font-size: 0.6875rem;
     font-weight: 500;
-    white-space: nowrap;
+    line-height: 1rem;
+    letter-spacing: 0.01em;
   }
 
-  .bottom-nav__item:hover,
+  .bottom-nav__item:hover {
+    color: var(--color-text);
+  }
+
   .bottom-nav__item[aria-current='page'] {
     color: var(--color-text);
+  }
+
+  .bottom-nav__item[aria-current='page'] .bottom-nav__icon {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
   }
 
   .bottom-nav__item[aria-current='page'] .bottom-nav__label {
     font-weight: 700;
   }
 
-  /* The current section: a drop of green glass under the tab, lit from above. */
-  .bottom-nav__drop {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background:
-      radial-gradient(80% 60% at 50% 0%, rgb(255 255 255 / 0.55), transparent 70%),
-      color-mix(in srgb, var(--color-accent) 34%, transparent);
-    box-shadow:
-      inset 0 1px 1px rgb(255 255 255 / 0.85),
-      inset 0 -1px 3px color-mix(in srgb, var(--color-accent-ink) 30%, transparent),
-      0 2px 8px color-mix(in srgb, var(--color-accent-ink) 18%, transparent);
-    transition: transform 0.4s var(--spring);
-    view-transition-name: nav-drop;
+  .bottom-nav__item:focus-visible {
+    outline: none;
   }
 
-  :global(:root[data-theme='dark']) .bottom-nav__drop {
-    background:
-      radial-gradient(80% 60% at 50% 0%, rgb(255 255 255 / 0.18), transparent 70%),
-      color-mix(in srgb, var(--color-accent) 26%, transparent);
-    box-shadow:
-      inset 0 1px 1px rgb(255 255 255 / 0.3),
-      0 2px 8px rgb(0 0 0 / 0.3);
-  }
-
-  .bottom-nav__item:active .bottom-nav__drop {
-    transform: scale(1.1, 1.06);
-  }
-
-  /*
-   * Scrolling down: the bar draws in to its icons; scrolling up brings the labels back. These
-   * are the end states; liquid-glass.ts animates between them (width, icon positions, labels).
-   */
-  .bottom-nav:global(.is-compact) .bottom-nav__bar {
-    width: fit-content;
-  }
-
-  .bottom-nav:global(.is-compact) .bottom-nav__label {
-    max-width: 0;
-    opacity: 0;
-  }
-
-  .bottom-nav:global(.is-compact) .bottom-nav__item {
-    gap: 0;
-    padding-inline: var(--space-3);
-  }
-
-  /* The search button: a drop of green-tinted glass beside the tabs, with a dark green symbol (white in dark theme). */
-  .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-accent) 55%, transparent);
-    --sheen: rgb(255 255 255 / 0.55);
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 4rem;
-    height: 2.875rem;
-    background:
-      var(--grain),
-      radial-gradient(90% 70% at 50% 0%, rgb(255 255 255 / 0.45), transparent 65%),
-      var(--glass);
-    color: var(--color-accent-ink);
-    box-shadow:
-      0 8px 18px rgb(63 174 118 / 0.38),
-      inset 0 -3px 8px rgb(27 110 69 / 0.3);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.45s var(--spring);
-  }
-
-  :global(:root[data-theme='dark']) .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-accent) 42%, transparent);
-    color: #ffffff;
-  }
-
-  .bottom-nav__search :global(.icon) {
-    position: relative;
-    z-index: 1;
-    width: 1.375rem;
-    height: 1.375rem;
-    stroke-width: 2.25;
-  }
-
-  .bottom-nav__search:active {
-    transform: scale(0.92);
-  }
-
-  .bottom-nav__item:focus-visible,
-  .bottom-nav__search:focus-visible {
+  .bottom-nav__item:focus-visible .bottom-nav__icon {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bottom-nav__bar,
-    .bottom-nav__drop,
-    .bottom-nav__search {
-      transition: none;
-    }
-
-    .bottom-nav__bar:active,
-    .bottom-nav__search:active,
-    .bottom-nav__item:active .bottom-nav__drop {
-      transform: none;
-    }
   }
 </style>
