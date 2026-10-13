@@ -1,0 +1,216 @@
+---
+/**
+ * "How the tools fit together": the five tools as one path (start, try, grow, compare, record),
+ * shown under each tool's introduction. The current tool is highlighted, with what it does,
+ * and the panel ends with the step that naturally follows it.
+ */
+import Icon from './Icon.astro';
+import { tools } from '../config/tools';
+
+interface Props {
+  /** The tool page this panel is on, e.g. "/advisor". */
+  current: string;
+}
+
+const { current } = Astro.props;
+const index = tools.findIndex((tool) => tool.href === current);
+const here = tools[index];
+const next = tools[index + 1];
+---
+
+<section class="tool-guide" aria-labelledby="tool-guide-title">
+  <h2 id="tool-guide-title" class="tool-guide__title">How the tools fit together</h2>
+  <p class="tool-guide__intro">
+    The five tools look at one design from different angles. Use them in this order, or start
+    wherever your question is.
+  </p>
+  <ol class="tool-guide__steps">
+    {
+      tools.map((tool, i) => (
+        <li class="tool-guide__step" aria-current={tool.href === current ? 'step' : undefined}>
+          <span class="tool-guide__number" aria-hidden="true">{i + 1}</span>
+          <span class="tool-guide__body">
+            <span class="tool-guide__name">
+              <span class="tool-guide__verb">{tool.step}</span>
+              {tool.href === current ? (
+                <strong>
+                  {tool.label} <span class="tool-guide__here">You are here</span>
+                </strong>
+              ) : (
+                <a href={tool.href}>{tool.label}</a>
+              )}
+            </span>
+            <span class="tool-guide__question">{tool.question}</span>
+            {tool.href === current && <span class="tool-guide__summary">{tool.summary}</span>}
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    here?.next && next && (
+      <p class="tool-guide__next">
+        <span>{here.next}</span>
+        <a href={next.href}>
+          Next: {next.label}
+          <Icon name="arrow-right" />
+        </a>
+      </p>
+    )
+  }
+</section>
+
+<style>
+  .tool-guide {
+    max-width: var(--measure);
+    margin-block: var(--space-6);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .tool-guide__title {
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .tool-guide__intro {
+    margin: var(--space-1) 0 var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .tool-guide__steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tool-guide__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.75rem 1fr;
+    gap: var(--space-3);
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+  }
+
+  /* The line joining the step numbers, so the list reads as one path. */
+  .tool-guide__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--space-2) + 1.75rem);
+    bottom: calc(var(--space-2) * -1);
+    left: calc(var(--space-2) + 0.875rem - 1px);
+    width: 2px;
+    background: var(--color-border);
+  }
+
+  .tool-guide__step[aria-current='step'] {
+    background: var(--color-accent-soft);
+  }
+
+  .tool-guide__number {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1.5px solid var(--color-accent-ink);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .tool-guide__step[aria-current='step'] .tool-guide__number {
+    background: var(--color-accent-ink);
+    color: var(--color-bg);
+  }
+
+  .tool-guide__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .tool-guide__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-weight: 500;
+  }
+
+  .tool-guide__verb {
+    min-width: 4.25rem;
+    color: var(--color-accent-ink);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .tool-guide__name a {
+    color: var(--color-text);
+  }
+
+  .tool-guide__name a:hover {
+    color: var(--color-accent-ink);
+  }
+
+  .tool-guide__here {
+    margin-left: var(--space-1);
+    padding: 0 var(--space-2);
+    border-radius: 999px;
+    background: var(--color-accent-ink);
+    color: var(--color-bg);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    vertical-align: 0.1em;
+  }
+
+  .tool-guide__question {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .tool-guide__summary {
+    margin-top: var(--space-1);
+    font-size: var(--text-sm);
+  }
+
+  .tool-guide__next {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-3) 0 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+  }
+
+  .tool-guide__next a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 2.75rem;
+    color: var(--color-accent-ink);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .tool-guide__next :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+</style>

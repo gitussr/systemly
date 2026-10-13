@@ -1,20 +1,20 @@
 import type { IconName } from './icons';
+import { tools } from './tools';
 
 export interface NavItem {
   label: string;
   href: string;
   icon: IconName;
+  /** A short line under the label where there is room (the "More" sheet): the question a tool answers. */
+  hint?: string;
 }
 
 // Sections are added here as each phase ships, so navigation never links to a missing page.
 const sections: NavItem[] = [
   { label: 'Roadmap', href: '/roadmap', icon: 'route' },
   { label: 'Library', href: '/learn', icon: 'library-big' },
-  { label: 'Advisor', href: '/advisor', icon: 'compass' },
-  { label: 'Evolution', href: '/evolution', icon: 'sprout' },
-  { label: 'Playground', href: '/playground', icon: 'shapes' },
-  { label: 'Decisions', href: '/decisions', icon: 'notebook-pen' },
-  { label: 'Why not?', href: '/why-not', icon: 'git-compare' },
+  // The tools, in the order they are used on one design (src/config/tools.ts).
+  ...tools.map(({ label, href, icon, question }) => ({ label, href, icon, hint: question })),
 ];
 
 const search: NavItem = { label: 'Search', href: '/search', icon: 'search' };

@@ -1,4 +1,5 @@
 ---
+import ToolGuide from '../../components/ToolGuide.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import StatusTag from '../../components/StatusTag.astro';
 import { isAvailable } from '../../lib/content/catalog';
@@ -33,6 +34,8 @@ console.info(
         solutions that could meet it: why you would choose each one, and why you would not.
       </p>
     </header>
+
+    <ToolGuide current="/why-not" />
 
     {
       comparisons.length === 0 ? (

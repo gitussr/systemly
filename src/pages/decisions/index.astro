@@ -1,4 +1,5 @@
 ---
+import ToolGuide from '../../components/ToolGuide.astro';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DecisionList from '../../components/DecisionList.astro';
@@ -50,6 +51,8 @@ console.info(
         <span>{ADR_SECTIONS.join(' · ')}</span>
       </p>
     </header>
+
+    <ToolGuide current="/decisions" />
 
     {
       records.length === 0 ? (

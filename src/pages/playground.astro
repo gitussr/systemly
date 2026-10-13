@@ -1,4 +1,5 @@
 ---
+import ToolGuide from '../components/ToolGuide.astro';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCurriculum } from '../lib/content/chapters';
@@ -54,6 +55,8 @@ const drafts = texts.filter((t) => t.status === 'draft').length;
         )
       }
     </header>
+
+    <ToolGuide current="/playground" />
 
     <noscript>
       <p class="playground__review">The Playground runs in your browser and needs JavaScript.</p>

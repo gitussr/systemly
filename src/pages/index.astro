@@ -1,11 +1,11 @@
 ---
+import { tools } from '../config/tools';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { getCurriculum } from '../lib/content/chapters';
 import { firstAvailable, groupByLevel } from '../lib/content/catalog';
 import { chapterHref } from '../lib/content/rules';
 import { site } from '../config/site';
-import type { IconName } from '../config/icons';
 
 /*
  * Copy on this page comes from MASTER-PROMPT.md: §1 identity (hero title, tagline, audience,
@@ -32,13 +32,6 @@ const notList = [
   'a collection of architecture diagrams without reasoning',
 ];
 
-const tools: { href: string; icon: IconName; title: string; text: string }[] = [
-  { href: '/advisor', icon: 'compass', title: 'Advisor', text: 'Describe your application and get an explained starting architecture.' },
-  { href: '/evolution', icon: 'sprout', title: 'Evolution', text: 'See how an architecture changes as a system grows, and why each change happens.' },
-  { href: '/playground', icon: 'shapes', title: 'Playground', text: 'Build an architecture, connect its components, and get warnings that explain common mistakes.' },
-  { href: '/decisions', icon: 'notebook-pen', title: 'Decisions', text: 'Architecture Decision Records: the context, options, trade-offs and reversal plan behind each decision.' },
-  { href: '/why-not', icon: 'git-compare', title: 'Why not?', text: 'One need, several possible solutions: when each one makes sense, and when it does not.' },
-];
 
 const curriculum = await getCurriculum();
 const start = firstAvailable(curriculum);
@@ -182,17 +175,27 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   <section class="band container" aria-labelledby="tools-title">
     <div class="band__head">
       <h2 id="tools-title" class="band__title">Interactive tools</h2>
+      <p class="band__lede">
+        Five tools, one path through a design: start from a suggested architecture, try it, watch it
+        grow, compare the choices it forces, and record why you chose. Each tool page shows where it fits.
+      </p>
     </div>
     <ul class="tools">
       {
-        tools.map((tool) => (
+        tools.map((tool, i) => (
           <li>
             <a class="tool" href={tool.href}>
-              <span class="tool__icon">
-                <Icon name={tool.icon} />
+              <span class="tool__top">
+                <span class="tool__icon">
+                  <Icon name={tool.icon} />
+                </span>
+                <span class="tool__step">
+                  {i + 1} · {tool.step}
+                </span>
               </span>
-              <span class="tool__title">{tool.title}</span>
-              <span class="tool__text">{tool.text}</span>
+              <span class="tool__title">{tool.label}</span>
+              <span class="tool__question">{tool.question}</span>
+              <span class="tool__text">{tool.summary}</span>
             </a>
           </li>
         ))
@@ -859,8 +862,28 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     height: 1.375rem;
   }
 
+  .tool__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .tool__step {
+    color: var(--color-accent-ink);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
   .tool__title {
     font-weight: 600;
+  }
+
+  .tool__question {
+    font-size: var(--text-sm);
+    font-weight: 500;
   }
 
   .tool__text {

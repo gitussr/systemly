@@ -69,7 +69,10 @@ const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
             aria-current={isCurrent(current, item.href) ? 'page' : undefined}
           >
             <Icon name={item.icon} />
-            <span>{item.label}</span>
+            <span class="more-sheet__text">
+              <span>{item.label}</span>
+              {item.hint && <span class="more-sheet__hint">{item.hint}</span>}
+            </span>
           </a>
         </li>
       ))
@@ -256,6 +259,18 @@ const moreIsCurrent = site.more.some((item) => isCurrent(current, item.href));
     color: var(--color-text);
     font-weight: 500;
     text-decoration: none;
+  }
+
+  .more-sheet__text {
+    display: flex;
+    flex-direction: column;
+    padding-block: var(--space-2);
+  }
+
+  .more-sheet__hint {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 400;
   }
 
   .more-sheet__item :global(.icon) {
