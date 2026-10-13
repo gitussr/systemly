@@ -65,7 +65,7 @@ tests/            # Vitest unit tests
 
 ## Navigation
 
-Below 64rem (phones and tablets) the section links are a fixed bottom navigation bar in the style of Android's Material 3 navigation bar: Roadmap, Library, Search, Advisor and **More**, which opens a bottom sheet with the other sections. The sheet is a native `popover`, so it needs no JavaScript, and Escape or a tap outside closes it. "Why not?" is in the sheet. From 64rem the links are in the header. Both read from `src/config/site.ts`; icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
+The site has two sections: **Roadmap** (the roadmap and every chapter page) and **System Lab** (`/lab`: the five tools — Advisor, Playground, Evolution, Why not?, Decisions — and the Library index). Tools keep their own URLs; `inSection()` in `src/config/site.ts` decides which section a page highlights, and `src/config/tools.ts` holds each tool's step, question and summary. From 64rem the two links are in the header; below it they are a fixed bottom navigation bar in the style of Android's Material 3 navigation bar. Search and the theme switch are header icons at every width (search first). Icons are Lucide outline icons copied into `src/config/icons.ts` (ISC License), so there is no icon dependency.
 
 ## Installable app and offline reading
 

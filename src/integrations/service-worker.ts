@@ -26,7 +26,7 @@ import { decisionHref } from '../lib/decisions/records';
 import { cssLatinFonts, htmlAssetRefs, jsStaticImports } from '../lib/pwa/assets';
 
 const INSTALL_PAGES = ['/offline'];
-const SHELL_PAGES = ['/', '/roadmap', '/learn', '/search', '/advisor', '/evolution', '/playground', '/decisions', '/why-not', '/offline'];
+const SHELL_PAGES = ['/', '/roadmap', '/lab', '/learn', '/search', '/advisor', '/evolution', '/playground', '/decisions', '/why-not', '/offline'];
 const INSTALL_FILES = [
   '/manifest.webmanifest',
   '/favicon-32.png',

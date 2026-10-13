@@ -1,0 +1,146 @@
+---
+/**
+ * System Lab: the second of the two sections. The Roadmap teaches in order; the Lab holds
+ * the five tools (one path through a design) and the Library for looking up any chapter.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import ToolCards from '../components/ToolCards.astro';
+import { getCurriculum } from '../lib/content/chapters';
+import { isAvailable } from '../lib/content/catalog';
+
+const chapters = await getCurriculum();
+const available = chapters.filter(isAvailable).length;
+---
+
+<BaseLayout
+  title="System Lab"
+  description="Five tools for working on a design, and the Library for looking up any chapter."
+>
+  <div class="container lab">
+    <header class="page-header">
+      <h1>System Lab</h1>
+      <p class="page-header__lede">
+        The <a href="/roadmap">Roadmap</a> teaches in order. The System Lab is where you apply it:
+        five tools that work on one design from different angles, and the Library for looking
+        up any concept.
+      </p>
+    </header>
+
+    <section class="lab__section" aria-labelledby="lab-tools-title">
+      <h2 id="lab-tools-title">Tools</h2>
+      <p class="lab__intro">
+        Use them in this order on one design, or start wherever your question is. Each tool page
+        shows where it fits and what comes next.
+      </p>
+      <ToolCards />
+    </section>
+
+    <section class="lab__section" aria-labelledby="lab-reference-title">
+      <h2 id="lab-reference-title">Reference</h2>
+      <a class="reference" href="/learn">
+        <span class="reference__icon">
+          <Icon name="library-big" />
+        </span>
+        <span class="reference__body">
+          <span class="reference__title">Library</span>
+          <span class="reference__question">Where is the chapter on…?</span>
+          <span class="reference__text">
+            Every chapter A–Z ({available} available of {chapters.length}), for looking up a
+            concept a tool mentions. To learn in order, follow the Roadmap.
+          </span>
+        </span>
+      </a>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .lab {
+    padding-block: var(--space-8) var(--space-12);
+  }
+
+  .page-header {
+    max-width: var(--measure);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-3xl);
+  }
+
+  .page-header__lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+  }
+
+  .lab__section {
+    margin-top: var(--space-8);
+  }
+
+  .lab__section h2 {
+    margin: 0;
+    font-size: var(--text-xl);
+  }
+
+  .lab__intro {
+    max-width: var(--measure);
+    margin: var(--space-1) 0 var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .reference {
+    display: flex;
+    gap: var(--space-4);
+    max-width: var(--measure);
+    margin-top: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .reference:hover {
+    border-color: var(--color-accent);
+  }
+
+  .reference__icon {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+    color: var(--color-accent-ink);
+  }
+
+  .reference__icon :global(svg) {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .reference__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .reference__title {
+    font-weight: 600;
+  }
+
+  .reference__question {
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .reference__text {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+</style>

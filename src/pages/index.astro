@@ -1,7 +1,6 @@
 ---
-import { tools } from '../config/tools';
+import ToolCards from '../components/ToolCards.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Icon from '../components/Icon.astro';
 import { getCurriculum } from '../lib/content/chapters';
 import { firstAvailable, groupByLevel } from '../lib/content/catalog';
 import { chapterHref } from '../lib/content/rules';
@@ -174,33 +173,15 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
 
   <section class="band container" aria-labelledby="tools-title">
     <div class="band__head">
-      <h2 id="tools-title" class="band__title">Interactive tools</h2>
+      <h2 id="tools-title" class="band__title">System Lab</h2>
       <p class="band__lede">
-        Five tools, one path through a design: start from a suggested architecture, try it, watch it
-        grow, compare the choices it forces, and record why you chose. Each tool page shows where it fits.
+        The Roadmap teaches in order; the System Lab is where you apply it. Five tools, one path
+        through a design: start from a suggested architecture, try it, watch it grow, compare the
+        choices it forces, and record why you chose.
       </p>
     </div>
-    <ul class="tools">
-      {
-        tools.map((tool, i) => (
-          <li>
-            <a class="tool" href={tool.href}>
-              <span class="tool__top">
-                <span class="tool__icon">
-                  <Icon name={tool.icon} />
-                </span>
-                <span class="tool__step">
-                  {i + 1} · {tool.step}
-                </span>
-              </span>
-              <span class="tool__title">{tool.label}</span>
-              <span class="tool__question">{tool.question}</span>
-              <span class="tool__text">{tool.summary}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <ToolCards />
+    <p class="band__more"><a href="/lab">Open the System Lab →</a></p>
   </section>
 
   <section class="band container not" aria-labelledby="not-title">
@@ -806,90 +787,6 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     font-weight: 500;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-  }
-
-  /* Tools */
-  .tools {
-    display: grid;
-    gap: var(--space-3);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  @media (min-width: 40rem) {
-    .tools {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .tools {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-  }
-
-  .tool {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    height: 100%;
-    padding: var(--space-5);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    color: var(--color-text);
-    text-decoration: none;
-  }
-
-  .tool:hover {
-    border-color: var(--color-accent);
-  }
-
-  .tool__icon {
-    display: inline-grid;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-bottom: var(--space-1);
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
-    color: var(--color-accent-ink);
-  }
-
-  .tool__icon :global(svg) {
-    width: 1.375rem;
-    height: 1.375rem;
-  }
-
-  .tool__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-  }
-
-  .tool__step {
-    color: var(--color-accent-ink);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .tool__title {
-    font-weight: 600;
-  }
-
-  .tool__question {
-    font-size: var(--text-sm);
-    font-weight: 500;
-  }
-
-  .tool__text {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    line-height: 1.5;
   }
 
   /* Systemly is NOT */

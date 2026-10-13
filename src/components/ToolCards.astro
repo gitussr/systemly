@@ -1,0 +1,115 @@
+---
+/**
+ * The five System Lab tools as cards, in path order (src/config/tools.ts): step, name,
+ * the question each answers and what it does. Used on the home page and the System Lab page.
+ */
+import Icon from './Icon.astro';
+import { tools } from '../config/tools';
+---
+
+<ul class="tools">
+  {
+    tools.map((tool, i) => (
+      <li>
+        <a class="tool" href={tool.href}>
+          <span class="tool__top">
+            <span class="tool__icon">
+              <Icon name={tool.icon} />
+            </span>
+            <span class="tool__step">
+              {i + 1} · {tool.step}
+            </span>
+          </span>
+          <span class="tool__title">{tool.label}</span>
+          <span class="tool__question">{tool.question}</span>
+          <span class="tool__text">{tool.summary}</span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .tools {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .tools {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .tools {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+
+  .tool {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .tool:hover {
+    border-color: var(--color-accent);
+  }
+
+  .tool__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: var(--space-1);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+    color: var(--color-accent-ink);
+  }
+
+  .tool__icon :global(svg) {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .tool__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .tool__step {
+    color: var(--color-accent-ink);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .tool__title {
+    font-weight: 600;
+  }
+
+  .tool__question {
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .tool__text {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+</style>
