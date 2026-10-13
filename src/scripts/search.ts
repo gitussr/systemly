@@ -1,5 +1,6 @@
 /**
- * Search page behaviour. The index is fetched once, on first use, and searched locally.
+ * Search behaviour, for the search dialog on every page and the /search page. The index is
+ * fetched once, on first use (shared by both), and searched locally as the reader types.
  * Results are built with DOM APIs and textContent, never HTML strings.
  */
 import type MiniSearch from 'minisearch';
@@ -24,18 +25,28 @@ function getIndex(): Promise<MiniSearch<SearchDocument>> {
   return indexPromise;
 }
 
-export function initSearch(): void {
-  const input = document.querySelector<HTMLInputElement>('#search-input');
-  const status = document.querySelector<HTMLElement>('#search-status');
-  const results = document.querySelector<HTMLElement>('#search-results');
-  if (!input || !status || !results) return;
+export interface SearchBox {
+  input: HTMLInputElement;
+  status: HTMLElement;
+  results: HTMLElement;
+  /** Keep the query in the address bar (?q=), as the /search page does. */
+  syncUrl?: boolean;
+}
+
+/** Starts downloading the index without waiting for it, e.g. when the dialog opens. */
+export function preloadIndex(): void {
+  void getIndex().catch(() => {});
+}
+
+/** Wires one search box. Returns `run`, to search (or clear, with '') from outside. */
+export function initSearch({ input, status, results, syncUrl: sync = false }: SearchBox): (query: string) => Promise<void> {
 
   let timer: number | undefined;
   let latest = 0;
 
   const run = async (query: string) => {
     const id = ++latest;
-    syncUrl(query);
+    if (sync) syncUrl(query);
     if (!query.trim()) {
       status.textContent = '';
       results.replaceChildren();
@@ -78,7 +89,7 @@ export function initSearch(): void {
   });
 
   // Start downloading the index as soon as the reader shows intent.
-  input.addEventListener('focus', () => void getIndex().catch(() => {}), { once: true });
+  input.addEventListener('focus', preloadIndex, { once: true });
 
   input.form?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -88,7 +99,9 @@ export function initSearch(): void {
   });
 
   // Arrow keys move between the field and the results.
-  document.addEventListener('keydown', (event) => {
+  const area: HTMLElement | Document = input.form?.parentElement ?? document;
+  area.addEventListener('keydown', (e) => {
+    const event = e as KeyboardEvent;
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     const links = [...results.querySelectorAll<HTMLAnchorElement>('a.result')];
     if (links.length === 0) return;
@@ -106,17 +119,14 @@ export function initSearch(): void {
 
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && input.value) {
+      // Clears the field first; a second Escape closes the dialog.
+      event.preventDefault();
       input.value = '';
       void run('');
     }
   });
 
-  const initial = new URLSearchParams(location.search).get('q') ?? '';
-  if (initial) {
-    input.value = initial;
-    void run(initial);
-  }
-  input.focus();
+  return run;
 }
 
 function syncUrl(query: string): void {

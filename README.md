@@ -55,7 +55,7 @@ src/
 │   └── search/   # index definition, document builder, Markdown-to-text
 ├── service-worker/ # sw.js source (the build prepends the version and file list)
 ├── pages/        # /, /roadmap, /learn (A–Z library), /learn/<slug>, /decisions, /decisions/<slug>, /why-not, /why-not/<id>, /search, /search-index.json
-├── scripts/      # browser scripts (search page)
+├── scripts/      # browser scripts (search dialog and page, reading progress, tools)
 └── styles/       # tokens, global styles, prose styles
 scripts/          # one-off asset scripts
 tests/            # Vitest unit tests
@@ -219,9 +219,9 @@ The build fails on duplicate slugs, invalid frontmatter, or a `related` slug tha
 
 ### Search
 
-`/search-index.json` is built from every published chapter, decision record and "Why not?" comparison, and is downloaded by the search page on first use. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
+`/search-index.json` is built from every published chapter, decision record and "Why not?" comparison, and is fetched once, when search is first opened (the dialog or the page), then searched in the browser as the reader types. Fields are weighted: title > aliases > tags > map topics > headings > summary > connected chapters' titles > body text. Placeholder bodies are not indexed. Results are followed by chapters linked to the top matches, so adding `aliases`, `tags` and `related` is how a chapter becomes findable from the problems it solves (e.g. a search for "Redis" reaching rate limiting).
 
-Press `/` anywhere to search.
+Search is a popup on every page (`SearchDialog.astro`, a native modal `<dialog>`): the header's search icon, `/` or Ctrl/⌘+K opens it; Escape clears the field, then closes it; a tap outside closes it. `/search` remains as a page for `?q=` links and for browsers without JavaScript (the icon is a real link to it).
 
 ### Related topics
 

@@ -1,0 +1,138 @@
+---
+/**
+ * Search as a popup on every page: a native modal <dialog> holding a SearchBox. The header's
+ * search icon, "/" and Ctrl/⌘+K open it (src/scripts/search-dialog.ts); Escape, the close
+ * button or a tap outside close it. The index is fetched once, when the dialog first opens,
+ * and results update as the reader types. Without JavaScript the icon links to /search.
+ */
+import Icon from './Icon.astro';
+import SearchBox from './SearchBox.astro';
+---
+
+<dialog id="search-dialog" class="search-dialog" aria-labelledby="search-dialog-title">
+  <div class="search-dialog__panel">
+    <div class="search-dialog__head">
+      <h2 id="search-dialog-title" class="search-dialog__title">Search</h2>
+      <span class="search-dialog__keys" aria-hidden="true"><kbd>Esc</kbd> to close</span>
+      <button class="search-dialog__close" type="button" data-search-close aria-label="Close search">
+        <Icon name="x" />
+      </button>
+    </div>
+    <SearchBox id="dialog-search" />
+  </div>
+</dialog>
+
+<script>
+  import { initSearchDialog } from '../scripts/search-dialog';
+  initSearchDialog();
+</script>
+
+<style>
+  .search-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .search-dialog::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+
+  /* Wide screens: a panel near the top, results scrolling inside it. */
+  @media (min-width: 48rem) {
+    .search-dialog {
+      width: min(42rem, calc(100% - 2 * var(--gutter)));
+      height: auto;
+      max-height: min(40rem, calc(100dvh - 8rem));
+      margin: 5rem auto auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 40px rgb(0 0 0 / 0.2);
+    }
+  }
+
+  .search-dialog__panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: inherit;
+    padding: var(--space-3) var(--gutter) var(--space-4);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  @media (min-width: 48rem) {
+    .search-dialog__panel {
+      padding: var(--space-4) var(--space-5) var(--space-5);
+    }
+  }
+
+  .search-dialog__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .search-dialog__title {
+    flex: 1;
+    margin: 0;
+    font-size: var(--text-lg);
+  }
+
+  .search-dialog__keys {
+    display: none;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+
+  @media (hover: hover) and (min-width: 48rem) {
+    .search-dialog__keys {
+      display: inline;
+    }
+  }
+
+  .search-dialog__keys kbd {
+    padding: 0 var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  .search-dialog__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-right: calc(var(--space-2) * -1);
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .search-dialog__close:hover {
+    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+    color: var(--color-text);
+  }
+
+  .search-dialog__close :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* The page behind does not scroll while search is open. */
+  :global(html:has(.search-dialog[open])) {
+    overflow: hidden;
+  }
+</style>

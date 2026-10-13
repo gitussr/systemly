@@ -6,6 +6,7 @@ import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import BottomNav from '../components/BottomNav.astro';
+import SearchDialog from '../components/SearchDialog.astro';
 import { site } from '../config/site';
 
 interface Props {
@@ -81,6 +82,7 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
     </main>
     <SiteFooter />
     <BottomNav />
+    <SearchDialog />
     {
       import.meta.env.PROD && (
         <script is:inline>
