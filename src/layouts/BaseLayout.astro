@@ -34,6 +34,17 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
         }
       } catch {}
     </script>
+    <!--
+      Moving between pages, the navigation bar's green drop glides from one tab to the other
+      (BottomNav.astro, view-transition-name: nav-drop); the page itself switches without a
+      crossfade. Inline, so every page opts in before its first render.
+    -->
+    <style is:inline>
+      @view-transition { navigation: auto; }
+      :root { view-transition-name: none; }
+      ::view-transition-group(nav-drop) { animation-duration: 0.5s; animation-timing-function: cubic-bezier(0.34, 1.35, 0.64, 1); }
+      @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+    </style>
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
