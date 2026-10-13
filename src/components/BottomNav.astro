@@ -78,7 +78,6 @@ const lenses = ['lens-bar', 'lens-search'];
     display: flex;
     justify-content: center;
     pointer-events: none; /* only the glass takes taps */
-    interpolate-size: allow-keywords; /* lets the bar's width spring to and from its compact size */
   }
 
   @media (min-width: 64rem) {
@@ -99,26 +98,29 @@ const lenses = ['lens-bar', 'lens-search'];
    */
   .bottom-nav__bar,
   .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-surface) 22%, transparent);
+    --glass: color-mix(in srgb, var(--color-surface) 48%, transparent);
+    /* Fine grain over the glass, as frosted glass has: tiled SVG noise, faint (alpha 0.16) by itself. */
+    --grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22140%22%20height%3D%22140%22%3E%3Cfilter%20id%3D%22n%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.85%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3CfeColorMatrix%20values%3D%220%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200%200.5%20%200%200%200%200.16%200%22/%3E%3C/filter%3E%3Crect%20width%3D%22140%22%20height%3D%22140%22%20filter%3D%22url%28%23n%29%22/%3E%3C/svg%3E");
     --rim-lit: rgb(255 255 255 / 0.95);
     --rim-dim: rgb(255 255 255 / 0.12);
     --sheen: rgb(255 255 255 / 0.3);
     position: relative;
     isolation: isolate;
     border-radius: 999px;
-    -webkit-backdrop-filter: blur(3px) saturate(1.8) brightness(1.08);
-    backdrop-filter: blur(3px) saturate(1.8) brightness(1.08);
+    -webkit-backdrop-filter: blur(14px) saturate(1.8) brightness(1.06);
+    backdrop-filter: blur(14px) saturate(1.8) brightness(1.06);
     pointer-events: auto;
   }
 
-  /* Chromium refracts the backdrop through the lens map, once one has been drawn (.has-lens). */
+  /* Chromium refracts the backdrop through the lens map, once one has been drawn (.has-lens),
+     and not while the bar changes size (.is-morphing), when the map would be out of date. */
   @supports (backdrop-filter: url(#a)) and (interpolate-size: allow-keywords) {
-    .bottom-nav__bar:global(.has-lens) {
-      backdrop-filter: url(#lens-bar) blur(1px) saturate(1.8) brightness(1.08);
+    .bottom-nav:not(:global(.is-morphing)) .bottom-nav__bar:global(.has-lens) {
+      backdrop-filter: url(#lens-bar) blur(12px) saturate(1.8) brightness(1.06);
     }
 
     .bottom-nav__search:global(.has-lens) {
-      backdrop-filter: url(#lens-search) saturate(1.6) brightness(1.05);
+      backdrop-filter: url(#lens-search) blur(10px) saturate(1.6) brightness(1.05);
     }
   }
 
@@ -131,14 +133,12 @@ const lenses = ['lens-bar', 'lens-search'];
     max-width: 26rem;
     height: var(--bottom-nav-bar);
     padding: 0 var(--space-1) 0 var(--space-1);
-    background: var(--glass);
+    background: var(--grain), var(--glass);
     box-shadow:
       0 14px 34px rgb(7 21 30 / 0.16),
       0 3px 8px rgb(7 21 30 / 0.08),
       inset 0 0 18px rgb(255 255 255 / 0.22);
-    transition:
-      width 0.5s var(--spring),
-      transform 0.45s var(--spring);
+    transition: transform 0.45s var(--spring);
   }
 
   /* Pressing anywhere on the bar: it swells a little and springs back, like a drop of liquid. */
@@ -198,7 +198,7 @@ const lenses = ['lens-bar', 'lens-search'];
 
   :global(:root[data-theme='dark']) .bottom-nav__bar,
   :global(:root[data-theme='dark']) .bottom-nav__search {
-    --glass: color-mix(in srgb, var(--color-surface) 38%, transparent);
+    --glass: color-mix(in srgb, var(--color-surface) 55%, transparent);
     --rim-lit: rgb(255 255 255 / 0.4);
     --rim-dim: rgb(255 255 255 / 0.05);
     --sheen: rgb(255 255 255 / 0.07);
@@ -230,9 +230,6 @@ const lenses = ['lens-bar', 'lens-search'];
     color: var(--color-text-muted);
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
-    transition:
-      padding 0.5s var(--spring),
-      gap 0.5s var(--spring);
   }
 
   .bottom-nav__item :global(.icon) {
@@ -248,9 +245,6 @@ const lenses = ['lens-bar', 'lens-search'];
     font-size: var(--text-sm);
     font-weight: 500;
     white-space: nowrap;
-    transition:
-      max-width 0.5s var(--spring),
-      opacity 0.25s ease;
   }
 
   .bottom-nav__item:hover,
@@ -292,7 +286,10 @@ const lenses = ['lens-bar', 'lens-search'];
     transform: scale(1.1, 1.06);
   }
 
-  /* Scrolling down: the bar draws in to its icons; scrolling up brings the labels back. */
+  /*
+   * Scrolling down: the bar draws in to its icons; scrolling up brings the labels back. These
+   * are the end states; liquid-glass.ts animates between them (width, icon positions, labels).
+   */
   .bottom-nav:global(.is-compact) .bottom-nav__bar {
     width: fit-content;
   }
@@ -318,6 +315,7 @@ const lenses = ['lens-bar', 'lens-search'];
     width: 4rem;
     height: 2.875rem;
     background:
+      var(--grain),
       radial-gradient(90% 70% at 50% 0%, rgb(255 255 255 / 0.45), transparent 65%),
       var(--glass);
     color: var(--color-accent-ink);
@@ -353,8 +351,6 @@ const lenses = ['lens-bar', 'lens-search'];
 
   @media (prefers-reduced-motion: reduce) {
     .bottom-nav__bar,
-    .bottom-nav__item,
-    .bottom-nav__label,
     .bottom-nav__drop,
     .bottom-nav__search {
       transition: none;
