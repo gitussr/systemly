@@ -59,8 +59,10 @@
   --gutter: 1rem;
   --measure: 68ch;
   --page-max: 72rem;
-  /* Material 3 navigation bar height; the bar is shown below 64rem. */
-  --bottom-nav-height: 5rem;
+  /* The floating navigation bar, shown below 64rem: its own height, and the room it takes
+     at the bottom of the screen (bar plus the gap around it), which pages keep clear. */
+  --bottom-nav-bar: 3.75rem;
+  --bottom-nav-height: calc(var(--bottom-nav-bar) + 2 * var(--space-3));
 
   --radius-sm: 4px;
   --radius-md: 8px;

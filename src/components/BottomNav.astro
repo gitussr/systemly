@@ -1,8 +1,9 @@
 ---
 /**
- * Phones and tablets: a fixed bottom navigation bar in the style of Android's Material 3
- * navigation bar, with the two sections (Roadmap and System Lab). Search and the theme
- * switch are in the header.
+ * Phones and tablets: a floating, frosted-glass navigation bar near the bottom of the screen.
+ * The two sections (Roadmap and System Lab) on the left, and a glossy search button on the
+ * right that opens the search dialog (src/scripts/search-dialog.ts; without JavaScript it is a
+ * link to /search). Page content scrolls behind the bar and shows through, blurred.
  */
 import Icon from './Icon.astro';
 import { inSection, site } from '../config/site';
@@ -11,35 +12,36 @@ const current = Astro.url.pathname;
 ---
 
 <nav class="bottom-nav" aria-label="Main">
-  <ul class="bottom-nav__bar">
-    {
-      site.nav.map((item) => (
-        <li>
-          <a
-            class="bottom-nav__item"
-            href={item.href}
-            aria-current={inSection(current, item) ? 'page' : undefined}
-          >
-            <span class="bottom-nav__indicator">
+  <div class="bottom-nav__bar">
+    <ul class="bottom-nav__items">
+      {
+        site.nav.map((item) => (
+          <li>
+            <a
+              class="bottom-nav__item"
+              href={item.href}
+              aria-current={inSection(current, item) ? 'page' : undefined}
+            >
               <Icon name={item.icon} />
-            </span>
-            <span class="bottom-nav__label">{item.label}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+              <span class="bottom-nav__label">{item.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a class="bottom-nav__search" href="/search" aria-label="Search" aria-haspopup="dialog" data-search-open>
+      <Icon name="search" />
+    </a>
+  </div>
 </nav>
 
 <style>
   /* Shown below 64rem; wide screens use the header links instead. */
   .bottom-nav {
     position: fixed;
-    inset: auto 0 0;
+    inset: auto var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
     z-index: 20;
-    padding-bottom: env(safe-area-inset-bottom);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    pointer-events: none; /* only the bar itself takes taps */
   }
 
   @media (min-width: 64rem) {
@@ -48,58 +50,85 @@ const current = Astro.url.pathname;
     }
   }
 
+  /* Frosted glass: translucent surface, blur of what scrolls behind, a bright rim and a soft lift. */
   .bottom-nav__bar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 24rem;
-    height: var(--bottom-nav-height);
+    --glass: color-mix(in srgb, var(--color-surface) 62%, transparent);
+    --rim: rgb(255 255 255 / 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    max-width: 26rem;
+    height: var(--bottom-nav-bar);
     margin: 0 auto;
+    padding: 0 var(--space-2) 0 var(--space-3);
+    border: 2px solid var(--rim);
+    border-radius: 1.75rem;
+    background: var(--glass);
+    box-shadow:
+      0 10px 30px rgb(7 21 30 / 0.12),
+      0 2px 6px rgb(7 21 30 / 0.06),
+      inset 0 1px 0 rgb(255 255 255 / 0.7);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    backdrop-filter: blur(18px) saturate(1.6);
+    pointer-events: auto;
+  }
+
+  /* Browsers without backdrop blur get a nearly opaque surface, so text behind stays out of the way. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .bottom-nav__bar {
+      --glass: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    }
+  }
+
+  :global(:root[data-theme='dark']) .bottom-nav__bar {
+    --glass: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    --rim: rgb(255 255 255 / 0.1);
+    box-shadow:
+      0 10px 30px rgb(0 0 0 / 0.45),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  .bottom-nav__items {
+    display: flex;
+    gap: var(--space-1);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .bottom-nav__item {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: var(--space-1);
-    width: 100%;
-    height: 100%;
-    padding: 0;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: 0 var(--space-3);
+    border-radius: 999px;
     color: var(--color-text-muted);
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* The pill behind the icon: the Material 3 active indicator. */
-  .bottom-nav__indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 4rem;
-    height: 2rem;
-    border-radius: 999px;
-    transition: background-color 150ms ease;
-  }
-
-  .bottom-nav__indicator :global(.icon) {
-    width: 1.5rem;
-    height: 1.5rem;
+  .bottom-nav__item :global(.icon) {
+    width: 1.375rem;
+    height: 1.375rem;
+    flex: none;
+    stroke-width: 1.5;
   }
 
   .bottom-nav__label {
-    font-size: 0.75rem;
+    font-size: var(--text-sm);
     font-weight: 500;
-    line-height: 1rem;
-    letter-spacing: 0.01em;
+    white-space: nowrap;
   }
 
-  .bottom-nav__item:hover .bottom-nav__indicator {
-    background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  .bottom-nav__item:hover {
+    color: var(--color-text);
   }
 
+  /* The current section: a light green pill, darker text. */
   .bottom-nav__item[aria-current='page'] {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
     color: var(--color-text);
   }
 
@@ -107,15 +136,43 @@ const current = Astro.url.pathname;
     font-weight: 700;
   }
 
-  .bottom-nav__item[aria-current='page'] .bottom-nav__indicator {
-    background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  /* The search button: a glossy green pill with a bright rim and a soft glow. */
+  .bottom-nav__search {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 2.75rem;
+    border: 2px solid rgb(255 255 255 / 0.85);
+    border-radius: 999px;
+    background:
+      radial-gradient(120% 90% at 30% 20%, rgb(255 255 255 / 0.55), transparent 55%),
+      linear-gradient(135deg, #8fe0b1, var(--systemly-green) 45%, #3fae76);
+    color: #ffffff;
+    box-shadow:
+      0 6px 16px rgb(63 174 118 / 0.35),
+      inset 0 -2px 6px rgb(27 110 69 / 0.25);
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .bottom-nav__item:focus-visible {
-    outline: none;
+  :global(:root[data-theme='dark']) .bottom-nav__search {
+    border-color: rgb(255 255 255 / 0.18);
   }
 
-  .bottom-nav__item:focus-visible .bottom-nav__indicator {
+  .bottom-nav__search :global(.icon) {
+    width: 1.375rem;
+    height: 1.375rem;
+    stroke-width: 2.25;
+    filter: drop-shadow(0 1px 1px rgb(27 110 69 / 0.4));
+  }
+
+  .bottom-nav__search:active {
+    transform: scale(0.96);
+  }
+
+  .bottom-nav__item:focus-visible,
+  .bottom-nav__search:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
