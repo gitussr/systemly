@@ -15,7 +15,8 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     <header class="page-header">
       <h1>Roadmap</h1>
       <p class="page-header__lede">
-        {`${levels.length} levels, from foundations to real-world system design. ${available} of ${total} chapters are available; the rest are in preparation.`}
+        {`${levels.length} levels and ${total} chapters, from foundations to real-world system design.` +
+          (available < total ? ` ${available} are available; the rest are in preparation.` : '')}
       </p>
       <div class="roadmap-controls">
         <button type="button" class="expand-all" aria-pressed="false" hidden>Expand all</button>
