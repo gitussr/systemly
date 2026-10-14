@@ -495,6 +495,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * AWS resources, APIs and identity
 * Cost, lifecycle and security as design constraints
 
+### 12.02 — AWS Accounts, Billing & Cost Guardrails
+
+* AWS account vs IAM identity, the root user
+* How AWS billing works
+* Budgets, alerts and spending limits
+* Tags and cleanup
+
 ---
 
 # LEVEL 13 — Real-World System Design
