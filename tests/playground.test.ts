@@ -60,6 +60,31 @@ describe('checks', () => {
     expect(finding?.nodes).toEqual(['n4']);
   });
 
+  it('flags clients that reach several instances without a load balancer', () => {
+    const g = connect(removeNode(preset('v2'), 'n2'), 'n1', 'n3');
+    expect(runChecks(g).find((f) => f.check === 'client-bypasses-load-balancer')?.nodes).toEqual(['n3']);
+    expect(checks(connect(preset('v1'), 'n1', 'n2'))).not.toContain('client-bypasses-load-balancer');
+  });
+
+  it('flags a cache or search index with no database behind it', () => {
+    const g = removeNode(preset('v3'), 'n6');
+    expect(runChecks(g).find((f) => f.check === 'no-source-of-truth')?.nodes).toEqual(['n5']);
+    expect(checks(preset('v3'))).not.toContain('no-source-of-truth');
+  });
+
+  it('flags a read replica without a primary', () => {
+    let g = addNode(removeNode(preset('v1'), 'n3'), 'read-replica');
+    g = connect(g, 'n2', g.nodes.at(-1)!.id);
+    expect(checks(g)).toContain('replica-without-primary');
+    g = connect(addNode(preset('v1'), 'read-replica'), 'n2', 'n4');
+    expect(checks(g)).not.toContain('replica-without-primary');
+  });
+
+  it('flags unconnected components, but not a lone first component', () => {
+    expect(runChecks(addNode(preset('v1'), 'queue')).find((f) => f.check === 'unconnected-component')?.nodes).toEqual(['n4']);
+    expect(checks(addNode({ nodes: [], edges: [] }, 'client'))).toEqual([]);
+  });
+
   it('has a known id for every finding', () => {
     for (const p of PRESETS) for (const f of runChecks(p.graph())) expect(CHECK_IDS).toContain(f.check);
   });

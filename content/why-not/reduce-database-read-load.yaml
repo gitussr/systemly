@@ -1,16 +1,26 @@
-# The need and the solutions come from MASTER-PROMPT §14. The explanations
-# ("why" and "whyNot" for each solution) are CONTENT REQUIRED from the owner.
+# The need and the solutions come from MASTER-PROMPT §14.
 need: Reduce database read load
-status: placeholder
+status: approved
 order: 1
+summary: "The database spends most of its time answering reads, and response times rise with traffic. Usually the cheapest fix comes first in this list."
 solutions:
   - name: Optimize query
     chapter: query-optimization
+    why: "A few queries usually cause most of the load: fetching unneeded columns, N+1 loops, or missing limits. Fixing them costs no new infrastructure, so always start here."
+    whyNot: "It only helps if specific queries are slow or wasteful. When many efficient queries simply arrive too often, rewriting them gains little."
   - name: Add index
     chapter: database-indexes
+    why: "A query that scans a large table to find a few rows becomes a short lookup. One index can turn seconds into milliseconds for a frequent query."
+    whyNot: "Every index slows writes and uses storage, and an index on a column that matches most rows is ignored. Add indexes for measured slow queries, not speculatively."
   - name: Read replica
     chapter: read-replicas
+    why: "Reads move to copies of the database while the primary keeps the writes. It fits when reads are already efficient but there are too many of them for one machine."
+    whyNot: "Replicas lag behind the primary, so a user can fail to see their own change straight after saving it. Each replica is another database to pay for and operate, and writes do not scale at all."
   - name: Application cache
     chapter: application-level-caching
+    why: "Results that are expensive to compute and read often (a product page, a user's permissions) are kept in the application's memory and skip the database entirely."
+    whyNot: "Each instance has its own copy, so instances can disagree and memory use grows with every instance. Every write needs a rule for when the cached copy is removed."
   - name: Redis
     chapter: redis
+    why: "A shared cache that every instance reads, so one cached copy serves the whole fleet and survives application deploys. It suits read-heavy data with a clear expiry rule."
+    whyNot: "It is another system to run, monitor and secure, and stale data and stampedes after expiry become possible. If the data changes on almost every read, the cache rarely helps."

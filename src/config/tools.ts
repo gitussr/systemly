@@ -47,7 +47,7 @@ export const tools: Tool[] = [
     step: 'Grow',
     question: 'What changes as it grows?',
     summary:
-      'Step through one system from 1,000 to 1,000,000 users: the problem that appears, what is measured, the one change made, and its trade-off. Any stage opens in the Advisor.',
+      'Step through a system as it grows (a web application, a content site, an online store): the problem that appears, what is measured, the one change made, and its trade-off. Any stage opens in the Advisor.',
     next: 'Each change is a choice between options. Why not? compares them for one need.',
   },
   {

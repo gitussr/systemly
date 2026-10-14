@@ -12,6 +12,10 @@ export const CHECK_IDS = [
   'no-redundancy',
   'local-sessions',
   'cache-invalidation-undefined',
+  'client-bypasses-load-balancer',
+  'no-source-of-truth',
+  'replica-without-primary',
+  'unconnected-component',
 ] as const;
 
 export type CheckId = (typeof CHECK_IDS)[number];
@@ -74,6 +78,35 @@ export function runChecks(graph: Graph): Finding[] {
     'cache-invalidation-undefined',
     graph.nodes.filter((n) => n.type === 'cache' && n.props.invalidation === 'undefined'),
   );
+
+  // The client reaches several instances directly, so nothing spreads load or skips a failed one.
+  add(
+    'client-bypasses-load-balancer',
+    graph.nodes.filter(
+      (n) => COMPUTE.has(n.type) && instances(n) > 1 && incoming(n.id).some((from) => from.type === 'client'),
+    ),
+  );
+
+  // Data kept only in a cache or search index, with no database to rebuild it from.
+  if (!graph.nodes.some((n) => n.type === 'database')) {
+    add(
+      'no-source-of-truth',
+      graph.nodes.filter((n) => (n.type === 'cache' || n.type === 'search') && incoming(n.id).length > 0),
+    );
+  }
+
+  // A read replica with no primary database to copy from.
+  if (!graph.nodes.some((n) => n.type === 'database')) {
+    add('replica-without-primary', graph.nodes.filter((n) => n.type === 'read-replica'));
+  }
+
+  // Components with no connections at all, in a design with more than one component.
+  if (graph.nodes.length > 1) {
+    add(
+      'unconnected-component',
+      graph.nodes.filter((n) => incoming(n.id).length === 0 && outgoing(n.id).length === 0),
+    );
+  }
 
   return findings;
 }

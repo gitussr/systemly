@@ -1,0 +1,56 @@
+# Stages follow MASTER-PROMPT §7: a problem appears → it is measured → one change → a new trade-off.
+title: An online store grows
+status: approved
+order: 3
+summary: "A shop where browsing can be slightly stale but orders and stock must be exact. Each step separates what may be relaxed from what must stay strongly consistent."
+stages:
+  - label: "1,000 customers"
+    title: "V1 — One application and a database"
+    components: [client, app, database]
+    problem: "A new shop with a catalogue, a cart and checkout. Orders, payments and stock all live in one relational database."
+    measure:
+      - "Checkout success rate and errors."
+      - "p95 response time for product pages and checkout."
+    change: "Run one application with one relational database, and wrap each order in a transaction so the stock and the order change together."
+    tradeOff: "A crash or deploy stops sales completely, and product pages and checkout compete for the same machine."
+    chapters: [monolith, transactions-acid, relational-databases]
+    advisor: { appType: e-commerce, users: under-1k, traffic: under-10 }
+
+  - label: "20,000 customers"
+    title: "V2 — Instances, a CDN and object storage"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, database, object-storage]
+    problem: "During a sale the single instance saturates, product images use most of the bandwidth, and every deploy interrupts checkouts in progress."
+    measure:
+      - "Application CPU and response time during sales."
+      - "Bandwidth used by images."
+      - "Checkouts that fail during deploys."
+    change: "Run several stateless instances behind a load balancer, keep carts in the database, and serve product images from object storage through a CDN."
+    tradeOff: "Instances must be stateless, so carts and sessions move to shared storage. The database now takes connections from every instance."
+    chapters: [stateless-application-design, load-balancer, object-storage, cdn]
+    advisor: { appType: e-commerce, users: 10k-100k, traffic: 10-100 }
+
+  - label: "200,000 customers"
+    title: "V3 — Catalogue cache and a search index"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, cache, database, search-index, object-storage]
+    problem: "Category pages and product search account for most of the database load, and text search with filters is slow. Checkout slows down because it shares the same database."
+    measure:
+      - "Database time spent on catalogue reads compared with orders."
+      - "Search response time with filters."
+      - "Cache hit ratio, once the cache exists."
+    change: "Cache product and category data with a short TTL, and move search into a search index fed from the database. Checkout still reads stock and prices from the database."
+    tradeOff: "A cached page can show a price or stock level that changed a moment ago, so checkout must always re-check against the database. The search index needs a sync job and can lag behind."
+    chapters: [cache-aside, ttl-expiration, search-system, data-consistency]
+    advisor: { appType: e-commerce, users: 100k-1m, traffic: 100-1k }
+
+  - label: "2,000,000 customers"
+    title: "V4 — Queue for order processing, read replicas"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, queue, workers, cache, database, read-replicas, search-index, object-storage]
+    problem: "Checkout waits for emails, invoices and warehouse notifications, so a slow partner makes customers wait. Order history and reports still load the primary database."
+    measure:
+      - "Time checkout spends waiting on other systems."
+      - "Read load on the primary after caching."
+      - "Queue depth and the age of the oldest message, once the queue exists."
+    change: "Commit the order and the stock change in one transaction, then put the follow-up work on a queue for workers. Send order history and reports to read replicas."
+    tradeOff: "Follow-up work can run twice or late, so handlers must be idempotent and failed messages need a dead-letter queue. Saving the order and publishing the message must not drift apart; the outbox pattern handles this."
+    chapters: [message-queue, worker, idempotency, dead-letter-queues, outbox-pattern, read-replicas]
+    advisor: { appType: e-commerce, users: over-1m, traffic: 1k-10k }

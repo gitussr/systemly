@@ -1,0 +1,21 @@
+need: Move slow work out of requests
+status: approved
+order: 2
+summary: "Requests wait for sending emails, resizing images or generating reports, so users wait and application instances stay busy."
+solutions:
+  - name: Make the work faster
+    chapter: where-does-performance-go
+    why: "Sometimes the slow part is one avoidable call, a missing index or a repeated network round trip. Fixing that keeps the code simple and the result immediate."
+    whyNot: "Some work is slow by nature (calling a partner, processing a video). Optimizing cannot make it fit inside a request."
+  - name: Background thread in the application
+    chapter: synchronous-vs-asynchronous-work
+    why: "The request returns at once and the same process finishes the work. It needs no new infrastructure and suits small, non-critical tasks."
+    whyNot: "If the instance restarts or crashes, the work is lost without a trace, and there is no retry or visibility. Busy instances also slow down every request they serve."
+  - name: Queue and workers
+    chapter: message-queue
+    why: "The request adds a message and returns. Workers process messages separately, with retries, a dead-letter queue for failures, and their own scaling."
+    whyNot: "The result arrives later, so the user interface must show progress. Messages can be delivered twice, so handlers must be idempotent, and the queue is another system to run."
+  - name: Scheduled batch job
+    chapter: worker
+    why: "Work that does not need to happen per request (nightly reports, cleanup, digests) runs on a schedule and processes everything at once, outside peak hours."
+    whyNot: "Results are delayed until the next run, and a failed run delays them further. It does not fit work that a user is waiting for."

@@ -1,0 +1,21 @@
+need: Store uploaded files
+status: approved
+order: 3
+summary: "Users upload images, documents or videos, and the application needs to keep them and serve them back."
+solutions:
+  - name: Application server disk
+    chapter: storage
+    why: "The simplest option for one instance: files are written next to the application and read back directly."
+    whyNot: "With several instances, a file exists only on the instance that received it, and it is lost when that machine is replaced. Disks fill up and backups must be handled separately."
+  - name: Database column
+    chapter: databases
+    why: "Small files stay in the same transaction and backup as the record they belong to, which keeps a few small attachments consistent."
+    whyNot: "Large files bloat the database, slow down backups and replication, and use expensive database capacity to serve bytes."
+  - name: Object storage
+    chapter: object-storage
+    why: "Durable, practically unlimited storage that every instance can reach, priced for large volumes. The database keeps only the file's key and metadata."
+    whyNot: "It is reached over the network with its own API, and there is no transaction across the database row and the file, so orphaned files need cleanup."
+  - name: Object storage behind a CDN
+    chapter: cdn-edge
+    why: "Files that many people download (images, videos) are served from locations near readers, which cuts latency and keeps the traffic away from the origin."
+    whyNot: "Private files need signed URLs or another access check, and a replaced file can stay cached until it expires. For rarely downloaded files it adds cost without benefit."

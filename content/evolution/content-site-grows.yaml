@@ -1,0 +1,55 @@
+# Stages follow MASTER-PROMPT §7: a problem appears → it is measured → one change → a new trade-off.
+title: A content site grows
+status: approved
+order: 2
+summary: "A blog or news site where almost every request is a read. Caching close to readers handles most of its growth, so the application changes far less than in a typical web application."
+stages:
+  - label: "1,000 readers"
+    title: "V1 — One application and a database"
+    components: [client, app, database]
+    problem: "A small site: editors publish articles, readers view them. Pages are built from the database on each request."
+    measure:
+      - "Page response time (p95) and error rate."
+      - "How many requests are page views and how many are edits."
+    change: "Run one application with one relational database. Nothing else is needed yet."
+    tradeOff: "Every page view rebuilds the same page from the database, and one instance is a single point of failure."
+    chapters: [what-is-a-system, relational-databases, latency-throughput-bandwidth]
+    advisor: { appType: content-site, users: under-1k, traffic: under-10 }
+
+  - label: "50,000 readers"
+    title: "V2 — CDN in front"
+    components: [client, cdn, app, database]
+    problem: "An article is shared widely. Traffic jumps tenfold within minutes, and the application spends its time building the same few pages again and again."
+    measure:
+      - "Share of requests that are identical page views."
+      - "Application CPU during traffic spikes."
+      - "Response time for readers far from the server."
+    change: "Put a CDN in front and let it cache pages and images, with cache headers that say how long each can be reused."
+    tradeOff: "Readers may see an older version of a page until it expires or is purged, so publishing or correcting an article needs a purge step. Pages that differ per user (logged-in views) must not be cached publicly."
+    chapters: [cdn, http-caching, browser-cache, ttl-expiration]
+    advisor: { appType: content-site, users: 10k-100k, traffic: 10-100 }
+
+  - label: "500,000 readers"
+    title: "V3 — Object storage, cache and a second instance"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, cache, database, object-storage]
+    problem: "The CDN absorbs most page views, but after each purge the cache misses all reach the single instance at once, and uploaded images fill the application server's disk."
+    measure:
+      - "CDN hit ratio, and requests reaching the origin after a purge."
+      - "Database queries per page on a cache miss."
+      - "Disk usage on the application server."
+    change: "Move images to object storage served through the CDN, cache rendered page fragments in a shared cache, and run two instances behind a load balancer."
+    tradeOff: "There are now three layers of cache (browser, CDN, application), and each needs its own expiry rule. A purge that empties every layer at once can cause a stampede on the database."
+    chapters: [object-storage, application-level-caching, cache-stampede, load-balancer]
+    advisor: { appType: content-site, users: 100k-1m, traffic: 100-1k }
+
+  - label: "5,000,000 readers"
+    title: "V4 — Search index and a read replica"
+    components: [client, cdn, load-balancer, app, multiple-app-instances, cache, database, read-replicas, search-index, object-storage]
+    problem: "Readers search the archive, and the database's text queries scan millions of rows. Those slow searches compete with editors saving articles."
+    measure:
+      - "Time spent in search queries, and how often they run."
+      - "Database CPU while editors are publishing."
+    change: "Index articles in a search index updated on publish, and send the remaining heavy reads to a read replica."
+    tradeOff: "The search index and the replica lag a little behind the database: a new article can take a few seconds to appear in search. The index is a copy, so it must be rebuildable from the database."
+    chapters: [search-system, read-replicas, eventual-consistency]
+    advisor: { appType: content-site, users: over-1m, traffic: 1k-10k }

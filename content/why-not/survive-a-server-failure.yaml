@@ -1,0 +1,25 @@
+need: Keep running when a server fails
+status: approved
+order: 6
+summary: "One machine going down, or one deploy going wrong, takes the whole service offline. Each option covers a larger failure, at a higher cost."
+solutions:
+  - name: Restart automatically
+    chapter: health-checks
+    why: "A health check detects a crashed process and the platform restarts or replaces it. It is cheap and covers the most common failures for a small service."
+    whyNot: "Users see errors until the replacement is ready, and it does not help if the whole machine or zone is lost."
+  - name: Several instances behind a load balancer
+    chapter: redundancy
+    why: "When one instance fails, health checks remove it and the others keep serving. Deploys can roll through instances without downtime."
+    whyNot: "Instances must be stateless, and it protects only the application tier: a single database is still a single point of failure."
+  - name: Database failover replica
+    chapter: failover
+    why: "A standby copy of the database takes over when the primary fails, so data is not the weak link anymore."
+    whyNot: "Failover takes seconds to minutes, writes in flight can be lost depending on replication mode, and a badly configured failover can cause split brain."
+  - name: Multiple availability zones
+    chapter: multi-az
+    why: "Instances and database replicas run in separate data centres in one region, so a power or network failure in one zone does not stop the service."
+    whyNot: "Traffic between zones costs money and adds a little latency, and it does not protect against a whole region failing."
+  - name: Multiple regions
+    chapter: multi-region
+    why: "The service runs in more than one region, so it survives a regional outage and can serve users closer to where they are."
+    whyNot: "Data must be replicated across long distances, which forces hard consistency choices. It roughly doubles cost and operational work, and is justified only by strict availability targets."

@@ -1,0 +1,25 @@
+need: Handle more writes than one database can take
+status: approved
+order: 5
+summary: "Write load on the primary database keeps rising. Read replicas and caches do not help, because every write still goes to one machine."
+solutions:
+  - name: Bigger database server
+    chapter: vertical-scaling
+    why: "More CPU, memory and faster disks with no change to the application. It often buys years of growth and should be tried before any redesign."
+    whyNot: "Cost grows faster than capacity, there is a largest machine, and resizing usually needs a maintenance window. It is still a single point of failure."
+  - name: Batch and queue writes
+    chapter: backpressure
+    why: "Writes that do not need to be immediate (events, counters, logs) go through a queue and are written in batches, smoothing peaks into a steady rate."
+    whyNot: "Data appears with a delay, and anything that needs read-your-write consistency cannot use it. Queued writes need idempotency in case they are applied twice."
+  - name: Partition by data or function
+    chapter: database-partitioning
+    why: "Split the largest table by time or key, or move one busy area (for example events) to its own database, so each piece is smaller and handled separately."
+    whyNot: "Queries across partitions become harder or slower, and choosing the key badly concentrates load in one partition."
+  - name: Sharding
+    chapter: sharding
+    why: "Rows are spread across several databases by a shard key, so write capacity grows with each machine added. It is the answer once one dataset outgrows the largest server."
+    whyNot: "Joins and transactions across shards are lost or become expensive, resharding is a major project, and hot keys still overload one shard. Only measured need justifies it."
+  - name: A database built for writes
+    chapter: nosql-databases
+    why: "Some workloads (time series, event logs, key-value data) fit databases designed to spread writes automatically across many nodes."
+    whyNot: "They usually trade away joins, flexible queries or strong consistency. Moving data and the code that reads it is a large migration."

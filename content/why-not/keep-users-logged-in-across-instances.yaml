@@ -1,0 +1,17 @@
+need: Keep users logged in across instances
+status: approved
+order: 4
+summary: "After adding a second application instance, users are logged out when a request reaches the instance that did not create their session."
+solutions:
+  - name: Sticky sessions
+    chapter: load-balancer
+    why: "The load balancer sends each user back to the same instance, so in-memory sessions keep working with no code change. It can bridge the gap while sessions are moved."
+    whyNot: "When that instance fails or is redeployed, its users are logged out. Load spreads unevenly, and adding instances does not move existing users."
+  - name: Shared session store
+    chapter: sessions-cookies
+    why: "Sessions live in a cache or database every instance can read, so any instance can serve any request and sessions can be revoked at once."
+    whyNot: "Every request makes an extra lookup, and the store becomes something the whole site depends on: if it is down, nobody is logged in."
+  - name: Stateless tokens (JWT)
+    chapter: jwt
+    why: "The signed token carries the user's identity, so instances verify it without any lookup. It suits APIs and several services sharing one login."
+    whyNot: "A token stays valid until it expires, so logging out or removing access needs short lifetimes plus refresh tokens or a deny list. Tokens grow with every claim added."
