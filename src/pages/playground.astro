@@ -166,8 +166,9 @@ const drafts = texts.filter((t) => t.status === 'draft').length;
     font-size: var(--text-sm);
   }
 
-  .playground select,
-  .playground input[type='text'] {
+  /* :global so the fields playground.ts builds in each component card get it too. */
+  .playground :global(select),
+  .playground :global(input[type='text']) {
     min-height: 2.75rem;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border);
