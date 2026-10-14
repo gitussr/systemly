@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import AvailabilityFilter from '../components/AvailabilityFilter.astro';
 import StatusTag from '../components/StatusTag.astro';
 import { getCurriculum } from '../lib/content/chapters';
 import { groupByLevel, isAvailable } from '../lib/content/catalog';
@@ -19,7 +18,6 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
         {`${levels.length} levels, from foundations to real-world system design. ${available} of ${total} chapters are available; the rest are in preparation.`}
       </p>
       <div class="roadmap-controls">
-        <AvailabilityFilter />
         <button type="button" class="expand-all" aria-pressed="false" hidden>Expand all</button>
       </div>
     </header>
@@ -112,11 +110,6 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
                 </li>
               ))}
             </ol>
-            {l.available === 0 && (
-              <p class="level__empty" data-when-filtered>
-                No chapters in this level are available yet.
-              </p>
-            )}
           </details>
         </section>
       ))
@@ -152,7 +145,6 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-2) var(--space-4);
   }
 
@@ -580,12 +572,6 @@ const available = levels.reduce((sum, l) => sum + l.available, 0);
   .chapter-row__topics {
     flex-basis: 100%;
     margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-
-  .level__empty {
-    margin: var(--space-4) 0 0;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
   }

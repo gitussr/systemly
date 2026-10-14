@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import AvailabilityFilter from '../../components/AvailabilityFilter.astro';
 import StatusTag from '../../components/StatusTag.astro';
 import { getCurriculum } from '../../lib/content/chapters';
 import { groupAlphabetically, isAvailable } from '../../lib/content/catalog';
@@ -15,7 +14,6 @@ const groups = groupAlphabetically(chapters);
     <header class="page-header">
       <h1>Library</h1>
       <p class="page-header__lede">Every chapter, A–Z. Use the roadmap to learn in order.</p>
-      <AvailabilityFilter />
     </header>
 
     <nav class="letter-jump" aria-label="Letters">
