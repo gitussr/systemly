@@ -9,6 +9,7 @@ const current = Astro.url.pathname;
 <header class="site-header">
   <div class="container site-header__inner">
     <a class="site-header__brand" href="/" aria-label={`${site.name} home`}>
+      <img class="site-header__mark" src="/logo-mark.png" width="32" height="32" alt="" />
       <Logo />
     </a>
 
@@ -84,8 +85,17 @@ const current = Astro.url.pathname;
   .site-header__brand {
     grid-area: brand;
     display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
     padding-block: var(--space-1);
     color: var(--color-text);
+  }
+
+  .site-header__mark {
+    display: block;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
   }
 
   .site-header__brand :global(.logo) {

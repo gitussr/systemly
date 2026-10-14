@@ -34,3 +34,5 @@ await icon('public/icons/icon-192.png', 192, 0.76, 0.18);
 await icon('public/icons/icon-512.png', 512, 0.76, 0.18);
 await icon('public/icons/icon-maskable-512.png', 512, 0.6);
 await icon('public/icons/apple-touch-icon.png', 180, 0.72);
+// Header mark, shown at 32px next to the wordmark (3× for sharp screens).
+await icon('public/logo-mark.png', 96, 0.82, 0.18);

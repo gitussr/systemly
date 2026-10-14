@@ -31,6 +31,7 @@ const INSTALL_FILES = [
   '/manifest.webmanifest',
   '/favicon-32.png',
   '/favicon-48.png',
+  '/logo-mark.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
