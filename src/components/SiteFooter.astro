@@ -4,7 +4,10 @@ import { site } from '../config/site';
 
 <footer class="site-footer">
   <div class="container site-footer__inner">
-    <p>{site.name} — {site.tagline}</p>
+    <p>{site.name}<span class="site-footer__dot">.</span> — {site.tagline}</p>
+    <p class="site-footer__copyright">
+      &copy; 2026 All Rights Reserved. Developed by <a href="https://chiranjitkarmakar.com" rel="author">Chiranjit Karmakar</a>.
+    </p>
   </div>
 </footer>
 
@@ -17,10 +20,24 @@ import { site } from '../config/site';
   }
 
   .site-footer__inner {
+    display: grid;
+    gap: var(--space-2);
     padding-block: var(--space-6);
   }
 
   .site-footer p {
     margin: 0;
+  }
+
+  .site-footer__dot {
+    color: #7ad5a0;
+  }
+
+  .site-footer a {
+    color: inherit;
+  }
+
+  .site-footer a:hover {
+    color: var(--color-text);
   }
 </style>
