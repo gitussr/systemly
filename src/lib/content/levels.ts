@@ -1,4 +1,4 @@
-/** Roadmap level names, verbatim from MASTER-PROMPT §9. */
+/** Roadmap level names, from MASTER-PROMPT §9; Level 12 (Cloud Engineering) was added by the owner on 2026-10-14. */
 export const LEVEL_NAMES: Record<number, string> = {
   0: 'Foundations',
   1: 'The Web Application',
@@ -12,7 +12,8 @@ export const LEVEL_NAMES: Record<number, string> = {
   9: 'Reliability',
   10: 'Observability',
   11: 'Security',
-  12: 'Real-World System Design',
+  12: 'Cloud Engineering',
+  13: 'Real-World System Design',
 };
 
 export function levelLabel(level: number): string {

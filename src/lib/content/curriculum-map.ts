@@ -90,7 +90,8 @@ export const LEVEL_KEYS: Record<number, string> = {
   9: 'reliability',
   10: 'observability',
   11: 'security',
-  12: 'case-studies',
+  12: 'cloud-engineering',
+  13: 'case-studies',
 };
 
 /**

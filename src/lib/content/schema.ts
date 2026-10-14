@@ -1,6 +1,6 @@
 import { z } from 'astro/zod';
 
-export const LEVELS = { min: 0, max: 12 } as const;
+export const LEVELS = { min: 0, max: 13 } as const;
 
 /**
  * approved     published

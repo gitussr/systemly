@@ -95,6 +95,7 @@ describe('placeholder files', () => {
 
   it('go into numbered level folders', () => {
     expect(levelFolder(0)).toBe('00-foundations');
-    expect(levelFolder(12)).toBe('12-case-studies');
+    expect(levelFolder(12)).toBe('12-cloud-engineering');
+    expect(levelFolder(13)).toBe('13-case-studies');
   });
 });

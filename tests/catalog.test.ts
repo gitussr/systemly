@@ -37,7 +37,7 @@ describe('catalog', () => {
 
   it('lists every roadmap level, including empty ones, with availability counts', () => {
     const levels = groupByLevel(chapters);
-    expect(levels.map((l) => l.level)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(levels.map((l) => l.level)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
     expect(levels[0]).toMatchObject({ name: 'Foundations', available: 1 });
     expect(levels[0]!.chapters).toHaveLength(2);
     expect(levels[1]!.chapters).toHaveLength(0);

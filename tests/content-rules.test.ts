@@ -21,7 +21,7 @@ describe('chapter schema', () => {
   });
 
   it('rejects levels outside the roadmap', () => {
-    expect(chapterSchema.safeParse({ title: 'X', slug: 'x', level: 13 }).success).toBe(false);
+    expect(chapterSchema.safeParse({ title: 'X', slug: 'x', level: 14 }).success).toBe(false);
   });
 });
 

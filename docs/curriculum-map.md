@@ -486,35 +486,46 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 
 ---
 
-# LEVEL 12 — Real-World System Design
+# LEVEL 12 — Cloud Engineering
+
+### 12.01 — Cloud Engineering: From Architecture to Implementation
+
+* Cloud architecture vs cloud engineering
+* Local development vs cloud deployment
+* AWS resources, APIs and identity
+* Cost, lifecycle and security as design constraints
+
+---
+
+# LEVEL 13 — Real-World System Design
 
 Each case study follows the same reasoning framework.
 
-### 12.01 — URL Shortener
+### 13.01 — URL Shortener
 
-### 12.02 — E-Commerce Platform
+### 13.02 — E-Commerce Platform
 
-### 12.03 — Social Feed
+### 13.03 — Social Feed
 
-### 12.04 — Chat System
+### 13.04 — Chat System
 
-### 12.05 — Notification System
+### 13.05 — Notification System
 
-### 12.06 — File Storage System
+### 13.06 — File Storage System
 
-### 12.07 — Video Platform
+### 13.07 — Video Platform
 
-### 12.08 — Search System
+### 13.08 — Search System
 
-### 12.09 — Payment System
+### 13.09 — Payment System
 
-### 12.10 — Analytics System
+### 13.10 — Analytics System
 
-### 12.11 — SaaS Platform
+### 13.11 — SaaS Platform
 
-### 12.12 — Food Delivery System
+### 13.12 — Food Delivery System
 
-### 12.13 — Ride-Hailing System
+### 13.13 — Ride-Hailing System
 
 Every case study:
 
