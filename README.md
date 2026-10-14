@@ -9,7 +9,7 @@ An educational PWA for developers learning system design, from first principles 
 - [Astro](https://astro.build) with static output: pages are HTML at build time, JavaScript only where a page needs interactivity.
 - TypeScript (strict).
 - Plain CSS with design tokens in `src/styles/tokens.css`.
-- Self-hosted fonts: Lora (titles), Google Sans (body/UI), both SIL OFL 1.1.
+- Self-hosted fonts: Butler Medium (titles, free version, `public/fonts/`), Google Sans (body/UI, SIL OFL 1.1).
 - [MiniSearch](https://lucaong.github.io/minisearch/) for client-side search over a build-time index.
 - Deployed on Vercel as static files (no adapter).
 

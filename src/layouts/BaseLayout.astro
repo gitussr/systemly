@@ -1,6 +1,4 @@
 ---
-// Lora is only used in italic; the upright files are never loaded.
-import '@fontsource-variable/lora/wght-italic.css';
 import '@fontsource-variable/google-sans';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -34,6 +32,7 @@ const pageTitle = title ? `${title} · ${site.name}` : `${site.name} — ${site.
         }
       } catch {}
     </script>
+    <link rel="preload" href="/fonts/butler-medium.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />

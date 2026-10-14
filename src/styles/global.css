@@ -1,5 +1,14 @@
 @import './tokens.css';
 
+/* Butler Medium, the only display weight used (public/fonts, from the Butler free version). */
+@font-face {
+  font-family: 'Butler';
+  src: url('/fonts/butler-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -49,11 +58,10 @@ h6 {
   text-wrap: balance;
 }
 
-/* Lora italic is reserved for page titles and editorial statements. */
+/* Butler is reserved for page titles and editorial statements. */
 h1,
 .editorial {
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 500;
 }
 

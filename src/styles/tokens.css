@@ -27,8 +27,8 @@
   --color-code-bg: #eef1f3;
 
   /* Typography */
-  /* Lora is used sparingly, in italic: page titles and editorial statements only. */
-  --font-display: 'Lora Variable', Georgia, 'Times New Roman', serif;
+  /* Butler is used sparingly: page titles and editorial statements only. */
+  --font-display: 'Butler', Georgia, 'Times New Roman', serif;
   --font-sans: 'Google Sans Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
 

@@ -32,6 +32,7 @@ const INSTALL_FILES = [
   '/favicon-32.png',
   '/favicon-48.png',
   '/logo-mark.png',
+  '/fonts/butler-medium.woff2',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
