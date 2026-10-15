@@ -509,6 +509,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Regional vs zonal resources, the console Region selector
 * Multi-AZ vs Multi-Region
 
+### 12.04 — AWS IAM: Users, Roles, Policies & Workload Identity
+
+* IAM users, groups, roles and policies
+* Trust policy vs permissions policy, how AWS evaluates permissions
+* Least privilege and temporary credentials
+* Workload identity, hardcoded keys, cross-account access
+
 ---
 
 # LEVEL 13 — Real-World System Design
