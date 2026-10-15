@@ -523,6 +523,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Verifying the active identity, inspecting before changing
 * Local development vs local AWS emulation, common errors
 
+### 12.06 — VPC, Subnets, Routes & Network Security
+
+* VPCs, IP addresses and CIDR, subnets and Availability Zones
+* Public vs private subnets, route tables, Internet and NAT Gateways
+* Security Groups vs Network ACLs
+* A three-tier network, troubleshooting, cost and safety
+
 ---
 
 # LEVEL 13 — Real-World System Design
