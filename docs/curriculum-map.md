@@ -502,6 +502,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Budgets, alerts and spending limits
 * Tags and cleanup
 
+### 12.03 — Regions, Availability Zones & Cloud Resources
+
+* Regions, Availability Zones and edge locations
+* Choosing a Region: latency, cost and data residency
+* Regional vs zonal resources, the console Region selector
+* Multi-AZ vs Multi-Region
+
 ---
 
 # LEVEL 13 — Real-World System Design
