@@ -516,6 +516,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Least privilege and temporary credentials
 * Workload identity, hardcoded keys, cross-account access
 
+### 12.05 — AWS CLI, SDKs & Local Development
+
+* Console vs CLI vs SDK, how local tools reach AWS
+* Profiles, credential resolution and Region configuration
+* Verifying the active identity, inspecting before changing
+* Local development vs local AWS emulation, common errors
+
 ---
 
 # LEVEL 13 — Real-World System Design
