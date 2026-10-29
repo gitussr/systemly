@@ -586,6 +586,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Secrets and OIDC credentials, deploying to S3, EC2, ECS and Lambda
 * Rolling, blue-green and canary releases, expand-and-contract migrations, health checks, rollback, pipeline security
 
+### 12.15 — Infrastructure as Code with Terraform
+
+* Infrastructure as Code, declarative vs imperative, providers, resources, variables and outputs
+* The init / fmt / validate / plan / apply workflow and reading a plan
+* State, local vs remote backends, locking, protecting state, drift
+* Dependencies, modules, environments, Terraform in CI/CD, Terraform vs CloudFormation
+
 ---
 
 # LEVEL 13 — Real-World System Design
