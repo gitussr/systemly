@@ -551,6 +551,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Backups, snapshots, point-in-time recovery, Multi-AZ vs read replicas
 * Capacity, connection pooling, unavailability handling, a connection-design exercise
 
+### 12.10 — Load Balancers, Auto Scaling & Health Checks
+
+* Elastic Load Balancing, ALB listeners, routing rules and target groups
+* Health checks, liveness vs readiness, instance vs target health
+* Auto Scaling groups, min/desired/max capacity, scaling policies and startup time
+* Multi-AZ, graceful shutdown, stateless design, dependency limits, launch templates, cost
+
 ---
 
 # LEVEL 13 — Real-World System Design
