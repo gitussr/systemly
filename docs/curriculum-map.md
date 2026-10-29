@@ -579,6 +579,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * TLS, the HTTPS handshake, certificates and SANs, wildcards, ACM and DNS validation
 * TLS termination, TTL and caching, "propagation", debugging layer by layer
 
+### 12.14 — CI/CD: Automated Build, Test & Deployment
+
+* CI vs Continuous Delivery vs Continuous Deployment, pipelines, runners, GitHub Actions workflows
+* Pull requests as a quality gate, build vs deploy, versioned artifacts, environments
+* Secrets and OIDC credentials, deploying to S3, EC2, ECS and Lambda
+* Rolling, blue-green and canary releases, expand-and-contract migrations, health checks, rollback, pipeline security
+
 ---
 
 # LEVEL 13 — Real-World System Design
