@@ -544,6 +544,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Versioning, durability vs backups, storage classes and lifecycle policies
 * Static website hosting vs CloudFront, a static-site lab, common mistakes
 
+### 12.09 — Managed Databases: RDS, Backups & Connectivity
+
+* Self-managed vs RDS, DB instances, private placement and DB subnet groups
+* Security Groups, endpoints, credentials and encryption
+* Backups, snapshots, point-in-time recovery, Multi-AZ vs read replicas
+* Capacity, connection pooling, unavailability handling, a connection-design exercise
+
 ---
 
 # LEVEL 13 — Real-World System Design
