@@ -572,6 +572,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Databases, sync vs async, event-driven designs, retries and idempotency
 * IAM, VPC networking, Lambda vs EC2 vs ECS, failure modes and cost
 
+### 12.13 — DNS, Custom Domains & TLS Certificates
+
+* DNS resolution, domain structure, record types (A, AAAA, CNAME, alias), hosted zones
+* DNS resolution vs HTTP routing, a custom domain in front of an ALB
+* TLS, the HTTPS handshake, certificates and SANs, wildcards, ACM and DNS validation
+* TLS termination, TTL and caching, "propagation", debugging layer by layer
+
 ---
 
 # LEVEL 13 — Real-World System Design
