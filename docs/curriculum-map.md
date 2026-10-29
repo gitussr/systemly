@@ -537,6 +537,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Running and supervising an application, a minimal web-server lab
 * EC2 vs managed compute, failure scenarios, cost and operations checklist
 
+### 12.08 — S3: Object Storage, Permissions & Static Hosting
+
+* Buckets, objects and keys; object vs block vs file storage
+* IAM vs bucket policies, Block Public Access, presigned URLs
+* Versioning, durability vs backups, storage classes and lifecycle policies
+* Static website hosting vs CloudFront, a static-site lab, common mistakes
+
 ---
 
 # LEVEL 13 — Real-World System Design
