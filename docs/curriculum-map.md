@@ -530,6 +530,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Security Groups vs Network ACLs
 * A three-tier network, troubleshooting, cost and safety
 
+### 12.07 — EC2: Virtual Machines & Application Deployment
+
+* Instances, lifecycle, AMIs, instance types and EBS storage
+* Networking, Security Groups and connecting (SSH, Session Manager)
+* Running and supervising an application, a minimal web-server lab
+* EC2 vs managed compute, failure scenarios, cost and operations checklist
+
 ---
 
 # LEVEL 13 — Real-World System Design
