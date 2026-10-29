@@ -565,6 +565,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * ECS clusters, task definitions, tasks and services; ECS on EC2 vs Fargate
 * ALB integration, secrets, networking, persistence, health checks, scaling, image quality
 
+### 12.12 — Serverless Computing with AWS Lambda & API Gateway
+
+* Serverless, Lambda invocations and triggers, API Gateway as the entry point
+* Execution environments, cold starts, timeouts, concurrency controls
+* Databases, sync vs async, event-driven designs, retries and idempotency
+* IAM, VPC networking, Lambda vs EC2 vs ECS, failure modes and cost
+
 ---
 
 # LEVEL 13 — Real-World System Design
