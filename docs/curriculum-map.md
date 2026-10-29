@@ -558,6 +558,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Auto Scaling groups, min/desired/max capacity, scaling policies and startup time
 * Multi-AZ, graceful shutdown, stateless design, dependency limits, launch templates, cost
 
+### 12.11 — Containers with Docker & Amazon ECS
+
+* Containers vs virtual machines; images, Dockerfiles, registries and ECR
+* Building and running a container locally
+* ECS clusters, task definitions, tasks and services; ECS on EC2 vs Fargate
+* ALB integration, secrets, networking, persistence, health checks, scaling, image quality
+
 ---
 
 # LEVEL 13 — Real-World System Design
