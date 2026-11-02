@@ -614,6 +614,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Idle resources, right-sizing compute, scaling down, database, storage, networking and logging costs
 * Cost per unit of work, the continuous optimization loop, cost vs reliability trade-offs
 
+### 12.19 — Cloud Backup, Disaster Recovery & Recovery Testing
+
+* Backup vs high availability vs disaster recovery, RPO and RTO as design inputs
+* RDS automated backups, snapshots and point-in-time recovery, S3 Versioning and Object Lock, protecting backups
+* Backup and restore, pilot light, warm standby and active-active, same-region vs cross-region recovery
+* Terraform in recovery, replication and logical corruption, dependency-ordered recovery, recovery testing and exercises
+
 ---
 
 # LEVEL 13 — Real-World System Design
