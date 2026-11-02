@@ -607,6 +607,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Worked responses to a compromised access key and a public S3 bucket
 * Containment, evidence preservation, trustworthy recovery, responder IAM, blast radius, automated remediation
 
+### 12.18 — Cloud Cost Management & Resource Optimization
+
+* How AWS costs accumulate, provisioned vs usage-based vs request-based costs, cost as a function of architecture
+* Cost visibility, AWS Budgets and their limits, cost allocation tags, forecasts and anomalies
+* Idle resources, right-sizing compute, scaling down, database, storage, networking and logging costs
+* Cost per unit of work, the continuous optimization loop, cost vs reliability trade-offs
+
 ---
 
 # LEVEL 13 — Real-World System Design
