@@ -593,6 +593,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * State, local vs remote backends, locking, protecting state, drift
 * Dependencies, modules, environments, Terraform in CI/CD, Terraform vs CloudFormation
 
+### 12.16 — Cloud Monitoring, Logs & Alerting with CloudWatch
+
+* Monitoring vs logging vs alerting, metrics, dimensions, custom metrics, log groups and streams
+* Getting logs into CloudWatch from EC2, ECS and Lambda, querying with Logs Insights
+* Alarms and their states, SNS notifications, dashboards, avoiding noisy alarms, missing data
+* Infrastructure vs application health, memory and disk collection, metrics-driven scaling, a practical monitoring strategy
+
 ---
 
 # LEVEL 13 — Real-World System Design
