@@ -600,6 +600,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Alarms and their states, SNS notifications, dashboards, avoiding noisy alarms, missing data
 * Infrastructure vs application health, memory and disk collection, metrics-driven scaling, a practical monitoring strategy
 
+### 12.17 — Cloud Security Operations & Incident Response
+
+* Security incidents and the CIA objectives, findings vs confirmed incidents, the incident-response lifecycle
+* CloudTrail, CloudWatch, GuardDuty, AWS Config and Security Hub, and the questions each answers
+* Worked responses to a compromised access key and a public S3 bucket
+* Containment, evidence preservation, trustworthy recovery, responder IAM, blast radius, automated remediation
+
 ---
 
 # LEVEL 13 — Real-World System Design
