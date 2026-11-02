@@ -621,6 +621,13 @@ The AWS section remains **concept-first → AWS implementation**, as specified i
 * Backup and restore, pilot light, warm standby and active-active, same-region vs cross-region recovery
 * Terraform in recovery, replication and logical corruption, dependency-ordered recovery, recovery testing and exercises
 
+### 12.20 — Capstone: Deploy a Production-Oriented Full-Stack Application
+
+* A Task Tracker on AWS: requirements first, three deployment paths, S3 + CloudFront, ALB, private backend and RDS
+* Network and security groups, secrets, IAM roles, Terraform, CI/CD and rollback
+* Monitoring, service objectives, failure testing, backup and restore, security review, cost guardrails and cleanup
+* A five-phase deployment sequence, production readiness as a spectrum, final architecture review and deliverables
+
 ---
 
 # LEVEL 13 — Real-World System Design
